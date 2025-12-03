@@ -2,9 +2,6 @@ import random
 import Othello
 import re
 
-def new_game():
-    return 34628173824, 68853694464
-
 def get_move(player, opponent, cpu):
     valid_moves = Othello.get_valid_move_list(player, opponent)
     if len(valid_moves) == 0: return -1
@@ -21,8 +18,33 @@ def get_move(player, opponent, cpu):
                 else: print("Not a Valid Move")
             else: print("Invalid Input")
 
+def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
+    if turn_count % 2 == 0: player, opponent = black, white
+    else: player, opponent = white, black
+
+    last_turn_pass = False
+    while True:
+        chosen_move = get_move(player, opponent, True)
+
+        if chosen_move == -1:
+            if last_turn_pass:
+                # Game complete! Parsing who is black currently
+                #   Returns: White Board, Black Board
+                if turn_count % 2 == 0:
+                    return Othello.determine_winner(opponent, player)
+                else:
+                    return Othello.determine_winner(player, opponent)
+            else:
+                last_turn_pass = True
+        else:
+            player, opponent = Othello.update_board(chosen_move, player, opponent)
+            last_turn_pass = False
+
+        player, opponent = opponent, player
+        turn_count += 1
+
 def game(num_players):
-    player, opponent = new_game()
+    player, opponent = 68853694464, 34628173824
 
     chosen_move = 0
     last_turn_pass = False
@@ -45,6 +67,7 @@ def game(num_players):
         if chosen_move == -1:
             if last_turn_pass:
                 # Game complete! Parsing who is black currently
+                #   Returns: White Board, Black Board
                 if turn % 2 == 0:
                     return opponent, player
                 else:
@@ -59,15 +82,16 @@ def game(num_players):
         turn += 1
 
 
-final_w, final_b = game(2)
-
-print("Final Game State:")
-Othello.disp_game(final_w, final_b)
-winner, score = Othello.determine_winner(final_w, final_b)
-match winner:
-    case "W":
-        print(f'White has won by {score} tiles')
-    case "B":
-        print(f'Black has won by {score * -1} tiles')
-    case "D":
-        print(f"It's a Draw!")
+if __name__ == '__main__':
+    print(random_game())
+    #
+    # print("Final Game State:")
+    # Othello.disp_game(final_w, final_b)
+    # winner = Othello.determine_winner(final_w, final_b)
+    # match winner:
+    #     case 1:
+    #         print(f'White has won')
+    #     case -1:
+    #         print(f'Black has won')
+    #     case 0:
+    #         print(f"It's a Draw!")
