@@ -76,45 +76,48 @@ class Node:
     def add_child(self, child):
         self.children.append(child)
 
-    def game(num_players):
-        player, opponent = new_game()
+def new_game():
+    return 34628173824, 68853694464
 
-        chosen_move = 0
-        last_turn_pass = False
-        turn = 0
-        while True:
-            match num_players:
-                case 0:
-                    chosen_move = get_move(player, opponent, True)
-                case 1:
-                    if turn % 2 == 0:
-                        Othello.disp_game(opponent, player)
-                        chosen_move = get_move(player, opponent, False)
-                    else:
-                        chosen_move = get_move(player, opponent, True)
-                        print(f'CPU Chooses: {chr(chosen_move % 8 + 65)}{chosen_move // 8 + 1}')
-                case 2:
-                    if turn % 2 == 0:
-                        Othello.disp_game(opponent, player)
-                    else:
-                        Othello.disp_game(player, opponent)
+def game(num_players):
+    player, opponent = new_game()
+
+    chosen_move = 0
+    last_turn_pass = False
+    turn = 0
+    while True:
+        match num_players:
+            case 0:
+                chosen_move = get_move(player, opponent, True)
+            case 1:
+                if turn % 2 == 0:
+                    Othello.disp_game(opponent, player)
                     chosen_move = get_move(player, opponent, False)
-
-            if chosen_move == -1:
-                if last_turn_pass:
-                    # Game complete! Parsing who is black currently
-                    if turn % 2 == 0:
-                        return opponent, player
-                    else:
-                        return player, opponent
                 else:
-                    last_turn_pass = True
-            else:
-                player, opponent = Othello.update_board(chosen_move, player, opponent)
-                last_turn_pass = False
+                    chosen_move = get_move(player, opponent, True)
+                    print(f'CPU Chooses: {chr(chosen_move % 8 + 65)}{chosen_move // 8 + 1}')
+            case 2:
+                if turn % 2 == 0:
+                    Othello.disp_game(opponent, player)
+                else:
+                    Othello.disp_game(player, opponent)
+                chosen_move = get_move(player, opponent, False)
 
-            player, opponent = opponent, player
-            turn += 1
+        if chosen_move == -1:
+            if last_turn_pass:
+                # Game complete! Parsing who is black currently
+                if turn % 2 == 0:
+                    return opponent, player
+                else:
+                    return player, opponent
+            else:
+                last_turn_pass = True
+        else:
+            player, opponent = Othello.update_board(chosen_move, player, opponent)
+            last_turn_pass = False
+
+        player, opponent = opponent, player
+        turn += 1
 
 
 if __name__ == "__main__":
