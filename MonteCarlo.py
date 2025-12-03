@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import Othello
 
 class MonteCarlo:
     def __init__(self, actions):
@@ -75,48 +76,46 @@ class Node:
     def add_child(self, child):
         self.children.append(child)
 
-def get_available_actions(board):
-    return np.where(board == 0)
+    def game(num_players):
+        player, opponent = new_game()
 
-def check_for_winner(board):
-    cpu_one_in_a_row = False
-    mc_one_in_a_row = False
+        chosen_move = 0
+        last_turn_pass = False
+        turn = 0
+        while True:
+            match num_players:
+                case 0:
+                    chosen_move = get_move(player, opponent, True)
+                case 1:
+                    if turn % 2 == 0:
+                        Othello.disp_game(opponent, player)
+                        chosen_move = get_move(player, opponent, False)
+                    else:
+                        chosen_move = get_move(player, opponent, True)
+                        print(f'CPU Chooses: {chr(chosen_move % 8 + 65)}{chosen_move // 8 + 1}')
+                case 2:
+                    if turn % 2 == 0:
+                        Othello.disp_game(opponent, player)
+                    else:
+                        Othello.disp_game(player, opponent)
+                    chosen_move = get_move(player, opponent, False)
 
-    for tile in board:
-        if tile == -1:
-            if cpu_one_in_a_row: return -1
+            if chosen_move == -1:
+                if last_turn_pass:
+                    # Game complete! Parsing who is black currently
+                    if turn % 2 == 0:
+                        return opponent, player
+                    else:
+                        return player, opponent
+                else:
+                    last_turn_pass = True
             else:
-                cpu_one_in_a_row = True
-                mc_one_in_a_row = False
-        if tile == 1:
-            if mc_one_in_a_row: return 1
-            else:
-                mc_one_in_a_row = True
-                cpu_one_in_a_row = False
-        if tile == 0:
-            cpu_one_in_a_row = False
-            mc_one_in_a_row = False
-    return 0
+                player, opponent = Othello.update_board(chosen_move, player, opponent)
+                last_turn_pass = False
 
-def game():
-    board = np.zeros(4)
-    player = 1
+            player, opponent = opponent, player
+            turn += 1
 
-    for _ in range(4):
-        actions = get_available_actions(board)
-
-        if player == 1:
-            i = 0
-            # MONTE CARLO
-        else:
-            board[random.choice(actions)] = -1
-
-        score = check_for_winner(board)
-        if score != 0: return score
-        player *= -1
-
-    print("Draw")
-    return 0
 
 if __name__ == "__main__":
     print("Hello World")
