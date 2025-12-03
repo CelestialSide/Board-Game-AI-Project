@@ -114,16 +114,11 @@ def disp_game(white, black):
         print(s)
 
 def determine_winner(white, black):
-    winner = 0
-    for i in range(8):
-        for k in range(8):
-            if read_bit(white, 8*i + k):
-                winner += 1
-            elif read_bit(black, 8*i + k):
-                winner -= 1
+    winner = int.bit_count(white) - int.bit_count(black)
+
     if winner == 0:
-        return "D", winner
+        return 0 # Draw!
     elif winner > 0:
-        return "W", winner
+        return 1 # White wins!
     else:
-        return "B", winner
+        return -1 # Black wins!
