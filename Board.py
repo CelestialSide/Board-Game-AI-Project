@@ -1,5 +1,3 @@
-from win32gui import UpdateLayeredWindow
-
 import Othello as o
 import random
 import math

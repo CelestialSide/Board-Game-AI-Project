@@ -1,16 +1,46 @@
 import numpy as np
 import random
-import Othello
+import Othello as o
+import Board as b
 
+
+def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
+    if turn_count % 2 == 0: player, opponent = black, white
+    else: player, opponent = white, black
+
+    last_turn_pass = False
+    while True:
+        valid_moves = o.get_valid_move_list(player, opponent)
+        if len(valid_moves) == 0: chosen_move = -1
+        else: chosen_move = random.choice(valid_moves)
+
+        if chosen_move == -1:
+            if last_turn_pass:
+                # Game complete! Parsing who is black currently
+                #   Returns: White Board, Black Board
+                if turn_count % 2 == 0:
+                    return o.determine_winner(opponent, player)
+                else:
+                    return o.determine_winner(player, opponent)
+            else:
+                last_turn_pass = True
+        else:
+            player, opponent = o.update_board(chosen_move, player, opponent)
+            last_turn_pass = False
+
+        player, opponent = opponent, player
+        turn_count += 1
+
+# Node __init__(self, parent=None, white=34628173824, black=68853694464, turn_count=0)
 class MonteCarlo:
     def __init__(self, actions):
-        self.root = Node(np.zeros(4), None, None)
+        self.root = b.Node()
 
     def selection(self, node):
-        if len(node.get_unvisited()) > 0:
-            return random.choice(node.get_unvisited())
+        if not node.is_explored():
+            return node
         else:
-            utc = [(child, child.get_utc) for child in node.children]
+            utc = [(child, child.compute_UCT) for child in node.children]
             max_utc = max([child[1] for child in utc])
             selected_node = random.choice([child for child in utc if child[1] == max_utc])[0]
             final_node = self.selection(selected_node)
@@ -18,108 +48,27 @@ class MonteCarlo:
 
 
     def expansion(self, parent):
-        next_move = random.choice(parent.get_unvisited())
-        new_board = parent.board.copy()
-
-        new_board[next_move] = 1
-        new_node = Node(new_board, next_move, parent)
-
-        parent.add_child(new_node)
-        return new_node
+        child = parent.make_child(parent)
+        return child
 
 
     def simulation(self, node):
-        simulated_board = node.board.copy()
-        simulated_actions = get_available_actions(simulated_board)
-        print(simulated_actions[0])
-
-        while len(simulated_actions[0]) > 0:
-            action = random.choice(simulated_actions[0])
-            if np.sum(simulated_board) == 0:
-                simulated_board[action] = 1
-            else:
-                simulated_board[action] = -1
-            simulated_actions = get_available_actions(simulated_board)
-
-            score = check_for_winner(simulated_board)
-            if score != 0:
-                return score
-        return 0
+        score = random_game(node.white, node.black, node.turn_count)
+        return score
 
 
-    def backpropagation(self, node, state):
+    def backpropagation(self, node, score):
         if node.parent is not None:
-            node.visits += 1
-            node.state += state
-            self.backpropagation(node.parent, node.state)
-
-class Node:
-    def __init__(self, board, move, parent):
-        self.board = board
-        self.move = move
-        self.actions = get_available_actions(self.board)
-        self.parent = parent
-
-        self.visits = 0
-        self.state = 0
-        self.children = []
-
-    def get_unvisited(self):
-        child_moves = [child.move for child in self.children]
-        return list(set(self.actions) - set(child_moves))
-
-    def get_utc(self, C):
-        if self.visits == 0: return np.inf
-        Vi = self.state / self.visits
-        return Vi + C * np.sqrt(2*np.log(self.parent.visits) / self.visits)
-
-    def add_child(self, child):
-        self.children.append(child)
-
-def new_game():
-    return 34628173824, 68853694464
-
-def game(num_players):
-    player, opponent = new_game()
-
-    chosen_move = 0
-    last_turn_pass = False
-    turn = 0
-    while True:
-        match num_players:
-            case 0:
-                chosen_move = get_move(player, opponent, True)
-            case 1:
-                if turn % 2 == 0:
-                    Othello.disp_game(opponent, player)
-                    chosen_move = get_move(player, opponent, False)
-                else:
-                    chosen_move = get_move(player, opponent, True)
-                    print(f'CPU Chooses: {chr(chosen_move % 8 + 65)}{chosen_move // 8 + 1}')
-            case 2:
-                if turn % 2 == 0:
-                    Othello.disp_game(opponent, player)
-                else:
-                    Othello.disp_game(player, opponent)
-                chosen_move = get_move(player, opponent, False)
-
-        if chosen_move == -1:
-            if last_turn_pass:
-                # Game complete! Parsing who is black currently
-                if turn % 2 == 0:
-                    return opponent, player
-                else:
-                    return player, opponent
+            if node.to_play:
+                node.score += -score
             else:
-                last_turn_pass = True
-        else:
-            player, opponent = Othello.update_board(chosen_move, player, opponent)
-            last_turn_pass = False
+                node.score += score
+            node.visits += 1
 
-        player, opponent = opponent, player
-        turn += 1
+            self.backpropagation(node.parent, node.score)
 
 
-if __name__ == "__main__":
-    print("Hello World")
+
+
+
 
