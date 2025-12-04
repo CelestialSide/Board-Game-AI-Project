@@ -116,12 +116,12 @@ if __name__ == '__main__':
     white, black = 34628173824, 68853694464
     node, move = monte_carlo_tree_search()
     black, white = o.update_board(move, black, white)
-    o.disp_game(white, black)
+    o.disp_game(white, black, False)
 
     valid_moves = o.get_valid_move_list(white, black)
     move = random.choice(valid_moves)
     white, black = o.update_board(move, white, black)
-    o.disp_game(white, black)
+    o.disp_game(white, black, True)
 
     if move in node.available_moves:
         new_root = node.make_child(move)
@@ -133,4 +133,4 @@ if __name__ == '__main__':
 
     node, move = monte_carlo_tree_search(new_root)
     black, white = o.update_board(move, black, white)
-    o.disp_game(white, black)
+    o.disp_game(white, black, False)
