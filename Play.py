@@ -34,6 +34,7 @@ def monte_carlo_game(cpu = True, root = None):
                 # Othello.disp_game(opponent, player)
                 root, chosen_move = mc.monte_carlo_tree_search(root)
             else:
+                if not cpu: Othello.disp_game(player, opponent, True)
                 chosen_move = get_move(player, opponent, cpu)
 
                 if chosen_move not in [child.move for child in root.children]:
@@ -71,14 +72,14 @@ def game(num_players):
             case 0: chosen_move = get_move(player, opponent, True)
             case 1:
                 if turn % 2 == 0:
-                    Othello.disp_game(opponent, player)
+                    Othello.disp_game(opponent, player, False)
                     chosen_move = get_move(player, opponent, False)
                 else:
                     chosen_move = get_move(player, opponent, True)
                     print(f'CPU Chooses: {chr(chosen_move % 8 + 65)}{chosen_move // 8 + 1}')
             case 2:
-                if turn % 2 == 0: Othello.disp_game(opponent, player)
-                else: Othello.disp_game(player, opponent)
+                if turn % 2 == 0: Othello.disp_game(opponent, player, False)
+                else: Othello.disp_game(player, opponent, True)
                 chosen_move = get_move(player, opponent, False)
 
         if chosen_move == -1:
@@ -101,16 +102,15 @@ def game(num_players):
 
 if __name__ == '__main__':
     tree_root = None
-    for _ in range(10):
-        final_w, final_b, tree_root = monte_carlo_game(root = tree_root)
+    final_w, final_b, tree_root = monte_carlo_game(cpu = True, root = tree_root)
 
-        print("Final Game State:")
-        Othello.disp_game(final_w, final_b)
-        winner = Othello.determine_winner(final_w, final_b)
-        match winner:
-            case 1:
-                print(f'White has won by {int.bit_count(final_w) - int.bit_count(final_b)} Tiles!')
-            case -1:
-                print(f'Black has won by {int.bit_count(final_b) - int.bit_count(final_w)} Tiles!')
-            case 0:
-                print(f"It's a Draw!")
+    print("Final Game State:")
+    Othello.disp_game(final_w, final_b, True)
+    winner = Othello.determine_winner(final_w, final_b)
+    match winner:
+        case 1:
+            print(f'White has won by {int.bit_count(final_w) - int.bit_count(final_b)} Tiles!')
+        case -1:
+            print(f'Black has won by {int.bit_count(final_b) - int.bit_count(final_w)} Tiles!')
+        case 0:
+            print(f"It's a Draw!")

@@ -98,7 +98,10 @@ def get_valid_move_list(player, opponent):
 
     return moves
 
-def disp_game(white, black):
+def disp_game(white, black, player):
+    if player: moves = advanced_gen_moves(white, black)
+    else: moves = advanced_gen_moves(black, white)
+
     print("  A B C D E F G H")
     for i in range(8):
         s = ""
@@ -108,6 +111,8 @@ def disp_game(white, black):
                 s += "W "
             elif read_bit(black, 8*i + k):
                 s += "B "
+            elif read_bit(moves, 8*i + k):
+                s += "X "
             else:
                 s += "O "
 
