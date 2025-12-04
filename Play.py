@@ -1,6 +1,7 @@
 import random
 import Othello
 import re
+import MonteCarlo as mc
 
 def get_move(player, opponent, cpu):
     valid_moves = Othello.get_valid_move_list(player, opponent)
@@ -18,22 +19,38 @@ def get_move(player, opponent, cpu):
                 else: print("Not a Valid Move")
             else: print("Invalid Input")
 
-def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
-    if turn_count % 2 == 0: player, opponent = black, white
-    else: player, opponent = white, black
+def monte_carlo_game(cpu = True):
+    player, opponent = 68853694464, 34628173824
+    turn = 0
+    root = None
 
     last_turn_pass = False
     while True:
-        chosen_move = get_move(player, opponent, True)
+        if root is not None: root.parent = None
+        valid_moves = Othello.get_valid_move_list(player, opponent)
+
+        if len(valid_moves) == 0:
+            chosen_move = -1
+        else:
+            if turn % 2 == 0:
+                # Othello.disp_game(opponent, player)
+                root, chosen_move = mc.monte_carlo_tree_search(root)
+            else:
+                chosen_move = random.choice(valid_moves)
+
+                if chosen_move in root.available_moves:
+                    root = root.make_child(chosen_move)
+                else:
+                    root = next(child for child in root.children if child.move == chosen_move)
 
         if chosen_move == -1:
             if last_turn_pass:
                 # Game complete! Parsing who is black currently
                 #   Returns: White Board, Black Board
-                if turn_count % 2 == 0:
-                    return Othello.determine_winner(opponent, player)
+                if turn % 2 == 0:
+                    return opponent, player
                 else:
-                    return Othello.determine_winner(player, opponent)
+                    return player, opponent
             else:
                 last_turn_pass = True
         else:
@@ -41,7 +58,7 @@ def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
             last_turn_pass = False
 
         player, opponent = opponent, player
-        turn_count += 1
+        turn += 1
 
 def game(num_players):
     player, opponent = 68853694464, 34628173824
@@ -83,15 +100,15 @@ def game(num_players):
 
 
 if __name__ == '__main__':
-    print(random_game())
-    #
-    # print("Final Game State:")
-    # Othello.disp_game(final_w, final_b)
-    # winner = Othello.determine_winner(final_w, final_b)
-    # match winner:
-    #     case 1:
-    #         print(f'White has won')
-    #     case -1:
-    #         print(f'Black has won')
-    #     case 0:
-    #         print(f"It's a Draw!")
+    final_w, final_b = monte_carlo_game()
+
+    print("Final Game State:")
+    Othello.disp_game(final_w, final_b)
+    winner = Othello.determine_winner(final_w, final_b)
+    match winner:
+        case 1:
+            print(f'White has won!')
+        case -1:
+            print(f'Black has won!')
+        case 0:
+            print(f"It's a Draw!")

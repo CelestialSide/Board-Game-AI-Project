@@ -32,8 +32,8 @@ class Node:
     def is_explored(self):
         return len(self.available_moves) == 0
 
-    def make_child(self):
-        move = random.choice(self.available_moves)
+    def make_child(self, move = None):
+        if move is None: move = random.choice(self.available_moves)
 
         if move != -1:
             if self.to_play:
@@ -57,4 +57,5 @@ class Node:
     def compute_best_score(self):
         scores = [(node, node.score / node.visits) for node in self.children]
         max_score = max([child[1] for child in scores])
-        return random.choice([child for child in scores if child[1] == max_score])[0].move
+        node = random.choice([child for child in scores if child[1] == max_score])[0]
+        return node, node.move
