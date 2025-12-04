@@ -4,7 +4,7 @@ import math
 
 class Node:
 
-    def __init__(self, parent=None, white=34628173824, black=68853694464, turn_count=0):
+    def __init__(self, parent=None, white=34628173824, black=68853694464, move = -1, turn_count=0):
         # Properties relevant to a node of a monte carlo tree
         self.parent = parent
         self.children = []
@@ -15,6 +15,7 @@ class Node:
         # Properties of the current Othello game state
         self.white = white
         self.black = black
+        self.move = move
         self.turn_count = turn_count
 
         # Note: When true, black is to play. When false, white is to play
@@ -45,10 +46,15 @@ class Node:
 
         self.available_moves.remove(move)
 
-        child = Node(self, new_white, new_black, self.turn_count + 1)
+        child = Node(self, new_white, new_black, move, self.turn_count + 1)
         self.children.append(child)
 
         return child
 
     def compute_UCT(self, c):
         return self.score / self.visits + c * math.sqrt(math.log(self.parent.visits)/self.visits)
+
+    def compute_best_score(self):
+        scores = [(node, node.score / node.visits) for node in self.children]
+        max_score = max([child[1] for child in scores])
+        return random.choice([child for child in scores if child[1] == max_score])[0].move
