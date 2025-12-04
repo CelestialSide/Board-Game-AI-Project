@@ -71,9 +71,9 @@ class MonteCarlo:
     def backpropagation(self, node, score):
         while node.parent is not None:
             if node.to_play:
-                node.score += -score
-            else:
                 node.score += score
+            else:
+                node.score += -score
             node.visits += 1
             node = node.parent
 
