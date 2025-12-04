@@ -26,7 +26,6 @@ def monte_carlo_game(cpu = True):
 
     last_turn_pass = False
     while True:
-        if root is not None: root.parent = None
         valid_moves = Othello.get_valid_move_list(player, opponent)
 
         if len(valid_moves) == 0:
