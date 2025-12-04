@@ -92,7 +92,9 @@ def monte_carlo_tree_search(root = None, iterations = 1000):
         true_root = b.Node()
         true_root.visits = 1
         tree = MonteCarlo(true_root)
-    else: tree = MonteCarlo(root)
+    else:
+        if root.visits < 1: root.visits = 1
+        tree = MonteCarlo(root)
 
     progress_bar = tqdm(range(iterations))
     for iteration in progress_bar:
@@ -102,13 +104,33 @@ def monte_carlo_tree_search(root = None, iterations = 1000):
         tree.backpropagation(child, score)
 
         if (iteration + 1) % 100 == 0:
-            progress_bar.set_postfix({'Top Move': tree.root.compute_best_score()})
+            progress_bar.set_postfix({'Top Move': tree.root.compute_best_score()[1]})
 
-    return tree.root
+    return tree.root.compute_best_score()
 
 
 
 
 if __name__ == '__main__':
-    monte_carlo_tree_search()
-    # tree.display(tree.root, 0)
+    # Test Code running through 2 MCTS moves
+    white, black = 34628173824, 68853694464
+    node, move = monte_carlo_tree_search()
+    black, white = o.update_board(move, black, white)
+    o.disp_game(white, black)
+
+    valid_moves = o.get_valid_move_list(white, black)
+    move = random.choice(valid_moves)
+    white, black = o.update_board(move, white, black)
+    o.disp_game(white, black)
+
+    if move in node.available_moves:
+        new_root = node.make_child(move)
+    else:
+        for child in node.children:
+            if child.move == move:
+                new_root = child
+                break
+
+    node, move = monte_carlo_tree_search(new_root)
+    black, white = o.update_board(move, black, white)
+    o.disp_game(white, black)
