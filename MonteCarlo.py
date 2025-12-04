@@ -3,7 +3,7 @@ import Othello as o
 import Board as b
 from tqdm import tqdm
 
-def display_node(node, indent):
+def display_node(node, indent = 0):
     display_indent = ('|    ' * indent) if indent > 0 else ''
 
     print(display_indent, end='')
@@ -50,14 +50,12 @@ class MonteCarlo:
 
 
     def selection(self, node):
-        if not node.is_explored():
-            return node
-        else:
+        while node.is_explored():
             utc = [(child, child.compute_UCT(2)) for child in node.children]
             max_utc = max([child[1] for child in utc])
             selected_node = random.choice([child for child in utc if child[1] == max_utc])[0]
-            final_node = self.selection(selected_node)
-        return final_node
+            node = selected_node
+        return node
 
 
     def expansion(self, parent):
@@ -71,14 +69,14 @@ class MonteCarlo:
 
 
     def backpropagation(self, node, score):
-        if node.parent is not None:
+        while node.parent is not None:
             if node.to_play:
                 node.score += -score
             else:
                 node.score += score
             node.visits += 1
+            node = node.parent
 
-            self.backpropagation(node.parent, node.score)
 
     def display(self, node, indent = 0):
         display_node(node, indent)
@@ -106,6 +104,8 @@ def monte_carlo_tree_search(root = None, iterations = 1000):
         if (iteration + 1) % 100 == 0:
             progress_bar.set_postfix({'Top Move': tree.root.compute_best_score()[1]})
 
+    #DEBUG BELOW: Display entire Tree
+    # tree.display(tree.root)
     return tree.root.compute_best_score()
 
 
