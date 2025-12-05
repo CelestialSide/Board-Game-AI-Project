@@ -60,13 +60,17 @@ def update_board(move_dex, player, opponent):
     player = set_bit(player, move_dex)
 
     directions = [-9, -8, -7, -1, 1, 7, 8, 9]
+    col_mask = [-1, 0, 1, -1, 1, -1, 0, 1]
 
-    for direct in directions:
+    for k in range(8):
+        direct = directions[k]
+        mask = col_mask[k]
+
         inbetween = 0
         pos = move_dex + direct
 
         # Read how many opponent pieces are between the new piece and the other flanking piece
-        while pos >= 0 and read_bit(opponent, pos):
+        while pos >= 0 and read_bit(opponent, pos) and not ((pos % 8 == 0 and mask < 0) or (pos % 8 == 7 and mask > 0)):
             inbetween += 1
             pos = pos + direct
 
@@ -127,3 +131,22 @@ def determine_winner(white, black):
         return 1 # White wins!
     else:
         return -1 # Black wins!
+
+
+if __name__ == '__main__':
+
+    white = 0
+    black = 0
+
+    black = set_bit(black, 24)
+    black = set_bit(black, 23)
+    black = set_bit(black, 30)
+    white = set_bit(white, 25)
+    white = set_bit(white, 38)
+
+    disp_game(white, black, white)
+    print()
+
+    white, black = update_board(22, white, black)
+
+    disp_game(white, black, black)
