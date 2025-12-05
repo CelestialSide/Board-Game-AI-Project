@@ -84,7 +84,6 @@ class MonteCarlo:
         for child in node.children:
             self.display(child, indent + 1)
 
-
 def monte_carlo_tree_search(root = None, iterations = 1000):
     if root is None:
         true_root = b.Node()
@@ -102,13 +101,12 @@ def monte_carlo_tree_search(root = None, iterations = 1000):
         tree.backpropagation(child, score)
 
         if (iteration + 1) % 100 == 0:
-            progress_bar.set_postfix({'Top Move': tree.root.compute_best_score()[1]})
+            best_move = tree.root.compute_best_score()[1]
+            progress_bar.set_postfix({'Top Move': f'{chr(best_move % 8 + 65)}{best_move // 8 + 1}'})
 
     #DEBUG BELOW: Display entire Tree
     # tree.display(tree.root)
     return tree.root.compute_best_score()
-
-
 
 
 if __name__ == '__main__':
@@ -123,6 +121,7 @@ if __name__ == '__main__':
     white, black = o.update_board(move, white, black)
     o.disp_game(white, black, True)
 
+    new_root = None
     if move in node.available_moves:
         new_root = node.make_child(move)
     else:
