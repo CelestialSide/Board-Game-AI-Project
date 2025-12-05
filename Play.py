@@ -3,6 +3,10 @@ import Othello
 import re
 import MonteCarlo as mc
 
+def convert_move_to_index(move):
+    square = list(move.upper())
+    return 8 * (int(square[1]) - 1) + ord(square[0]) - 65
+
 def get_move(player, opponent, cpu):
     valid_moves = Othello.get_valid_move_list(player, opponent)
     if len(valid_moves) == 0: return -1
