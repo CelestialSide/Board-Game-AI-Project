@@ -102,7 +102,7 @@ def game(num_players):
 
 if __name__ == '__main__':
     tree_root = None
-    final_w, final_b, tree_root = monte_carlo_game(cpu = True, root = tree_root)
+    final_w, final_b, tree_root = monte_carlo_game(cpu = False, root = tree_root)
 
     print("Final Game State:")
     Othello.disp_game(final_w, final_b, True)
