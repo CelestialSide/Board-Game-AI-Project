@@ -16,6 +16,11 @@ def display_node(node, indent = 0):
     print(f'{display_indent}| white: {int.bit_count(node.white)} Tiles')
     print(f'{display_indent}|')
 
+def create_root():
+    root = b.Node()
+    root.visits = 1
+    return root
+
 def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
     if turn_count % 2 == 0: player, opponent = black, white
     else: player, opponent = white, black
@@ -86,9 +91,7 @@ class MonteCarlo:
 
 def monte_carlo_tree_search(root = None, iterations = 1000):
     if root is None:
-        true_root = b.Node()
-        true_root.visits = 1
-        tree = MonteCarlo(true_root)
+        tree = MonteCarlo(create_root())
     else:
         if root.visits < 1: root.visits = 1
         tree = MonteCarlo(root)
@@ -102,7 +105,8 @@ def monte_carlo_tree_search(root = None, iterations = 1000):
 
         if (iteration + 1) % 100 == 0:
             best_move = tree.root.compute_best_score()[1]
-            progress_bar.set_postfix({'Top Move': f'{chr(best_move % 8 + 65)}{best_move // 8 + 1}'})
+            move = f'{chr(best_move % 8 + 65)}{best_move // 8 + 1}' if best_move != -1 else 'pass'
+            progress_bar.set_postfix({'Top Move': {move}})
 
     #DEBUG BELOW: Display entire Tree
     # tree.display(tree.root)
