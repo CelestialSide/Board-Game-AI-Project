@@ -60,13 +60,17 @@ def update_board(move_dex, player, opponent):
     player = set_bit(player, move_dex)
 
     directions = [-9, -8, -7, -1, 1, 7, 8, 9]
+    col_mask = [-1, 0, 1, -1, 1, -1, 0, 1]
 
-    for direct in directions:
+    for k in range(8):
+        direct = directions[k]
+        mask = col_mask[k]
+
         inbetween = 0
         pos = move_dex + direct
 
         # Read how many opponent pieces are between the new piece and the other flanking piece
-        while pos >= 0 and read_bit(opponent, pos):
+        while pos >= 0 and read_bit(opponent, pos) and not ((pos % 8 == 0 and mask < 0) or (pos % 8 == 7 and mask > 0)):
             inbetween += 1
             pos = pos + direct
 
@@ -98,7 +102,10 @@ def get_valid_move_list(player, opponent):
 
     return moves
 
-def disp_game(white, black):
+def disp_game(white, black, player):
+    if player: moves = advanced_gen_moves(white, black)
+    else: moves = advanced_gen_moves(black, white)
+
     print("  A B C D E F G H")
     for i in range(8):
         s = ""
@@ -108,22 +115,38 @@ def disp_game(white, black):
                 s += "W "
             elif read_bit(black, 8*i + k):
                 s += "B "
+            elif read_bit(moves, 8*i + k):
+                s += "X "
             else:
                 s += "O "
 
         print(s)
 
 def determine_winner(white, black):
-    winner = 0
-    for i in range(8):
-        for k in range(8):
-            if read_bit(white, 8*i + k):
-                winner += 1
-            elif read_bit(black, 8*i + k):
-                winner -= 1
+    winner = int.bit_count(white) - int.bit_count(black)
+
     if winner == 0:
-        return "D", winner
+        return 0 # Draw!
     elif winner > 0:
-        return "W", winner
+        return 1 # White wins!
     else:
-        return "B", winner
+        return -1 # Black wins!
+
+
+if __name__ == '__main__':
+
+    white = 0
+    black = 0
+
+    black = set_bit(black, 24)
+    black = set_bit(black, 23)
+    black = set_bit(black, 30)
+    white = set_bit(white, 25)
+    white = set_bit(white, 38)
+
+    disp_game(white, black, white)
+    print()
+
+    white, black = update_board(22, white, black)
+
+    disp_game(white, black, black)
