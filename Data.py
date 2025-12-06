@@ -4,24 +4,35 @@ import pandas as pd
 from torch.utils.data import Dataset, DataLoader
 import Play as p
 import random
+from tqdm import tqdm
 
 class OthelloGames(Dataset):
 
-    def __init__(self):
-        self.csv = pd.read_csv("othello_dataset.csv")
+    def __init__(self, path="othello_dataset.csv", run_full_game=False, train=True):
+        self.csv = pd.read_csv(path)
 
-    def __getitem__(self, item):
+        if train:
+            self.csv = self.csv.iloc[:int(0.8*len(self.csv))]
+        else:
+            self.csv = self.csv.iloc[int(0.8*len(self.csv)):]
+
+        self.run_full_game = run_full_game
+
+    def __getitem__(self, item, run_full=False):
         # Win Condition Meanings:
-        # 0 - White wins
-        # 1 - Draw
-        # 2 - Black wins
+        # -1 - White wins
+        # 0 - Draw
+        # 1 - Black wins
         win_condition = self.csv.iloc[item, 1] + 1
 
         moves = self.csv.iloc[item, 2]
         moves = [p.convert_move_to_index(moves[2*i:2*i+2]) for i in range(len(moves)//2)]
 
         # Generate a random length to go to in the game.
-        rand_len = random.randint(0, len(moves)//2)
+        if not self.run_full_game:
+            rand_len = random.randint(0, len(moves))
+        else:
+            rand_len = len(moves)
 
         # Play out to this point in the game to get white & black bitboards
         white, black = 68853694464, 34628173824
@@ -30,6 +41,10 @@ class OthelloGames(Dataset):
         move_dex = 0
 
         while move_dex < rand_len:
+            if turn_count > 200:
+                # Invalid game unique output
+                return torch.tensor(10, dtype=torch.long), torch.zeros(1)
+
             if turn_count % 2 == 0:
                 player, opponent = black, white
             else:
@@ -65,7 +80,7 @@ class OthelloGames(Dataset):
                 elif Othello.read_bit(white, i*8+j):
                     board[1, i, j] = 1
 
-        return torch.tensor(win_condition, dtype=torch.long), board
+        return torch.tensor(win_condition, dtype=torch.float32), board
 
     def __len__(self):
         return len(self.csv)
@@ -73,6 +88,24 @@ class OthelloGames(Dataset):
 
 
 if __name__ == "__main__":
-    dat = OthelloGames()
+    # dat = OthelloGames(path="cleaned_games.csv")
+    dat = OthelloGames(run_full_game=True)
+    # print(len(dat))
 
-    print(dat[0])
+    dat_loader = DataLoader(dat, batch_size=1)
+
+    p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
+    count = 0
+    indices_to_remove = []
+    for i, batch in enumerate(p_bar):
+        a = batch[0]
+
+        if a[0].item() == 10:
+            indices_to_remove.append(i)
+            count += 1
+
+    clean_df = dat.csv.drop(index=indices_to_remove)
+    clean_df.to_csv("cleaned_games.csv", index=False)
+
+    print(count)
+

@@ -33,7 +33,7 @@ def advanced_gen_moves(player, opponent):
     shift_boards(player_boards)
 
     # Now, for the initial loop
-    for l in range(1, 7):  # Possible lengths of continuous enemy pieces ~ [1,7]
+    for l in range(1, 7):  # Possible lengths of continuous enemy pieces ~ [1,7)
         # Update opponent boards
         shift_boards(opponent_boards)
 
@@ -102,23 +102,23 @@ def get_valid_move_list(player, opponent):
 
     return moves
 
-def disp_game(white, black, player):
-    if player: moves = advanced_gen_moves(white, black)
-    else: moves = advanced_gen_moves(black, white)
+def disp_game(white, black, blacks_move):
+    if blacks_move: moves = advanced_gen_moves(black, white)
+    else: moves = advanced_gen_moves(white, black)
 
-    print("  A B C D E F G H")
+    print("\n  A B C D E F G H")
     for i in range(8):
         s = ""
         print(i + 1, end = ' ')
         for k in range(8):
             if read_bit(white, 8*i + k):
-                s += "W "
+                s += f'{chr(9679)} '
             elif read_bit(black, 8*i + k):
-                s += "B "
+                s += f'{chr(9675)} '
             elif read_bit(moves, 8*i + k):
                 s += "X "
             else:
-                s += "O "
+                s += f'{chr(9633)} '
 
         print(s)
 
