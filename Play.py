@@ -20,8 +20,6 @@ def update_node(node, move):
     if node is None:
         node = mc.create_root()
 
-    if move == -1:
-        return node, move
 
     if move not in [child.move for child in node.children]:
         root = node.make_child(move)
@@ -65,7 +63,7 @@ def monte_carlo_game(cpu = True, use_gui = False, color = None, primary_iteratio
         display.setup_board([player, opponent])
 
     while True:
-        Othello.disp_game(white, black, not turn % 2)
+        # Othello.disp_game(white, black, not turn % 2)
 
         if cpu:
             if turn % 2 == 0:
@@ -147,17 +145,27 @@ def game(use_gui = False):
 
 
 if __name__ == '__main__':
-    #final_w, final_b, tree_root = monte_carlo_game(cpu = False, use_gui=True, color = "White")
+    winner = 0
+    black = 0
+    white = 0
 
-    final_w, final_b = game(use_gui=True)
+    for i in range(20):
+        print(f'Game {i + 1}')
+        final_w, final_b, tree_root = monte_carlo_game(cpu = True, primary_iterations = 250, secondary_iterations = 500)
+        winner += Othello.determine_winner(final_w, final_b)
+        black += int.bit_count(final_b)
+        white += int.bit_count(final_w)
 
-    print("Final Game State:")
-    Othello.disp_game(final_w, final_b, True)
-    winner = Othello.determine_winner(final_w, final_b)
-    match winner:
-        case 1:
-            print(f'White has won by {int.bit_count(final_w) - int.bit_count(final_b)} Tiles!')
-        case -1:
-            print(f'Black has won by {int.bit_count(final_b) - int.bit_count(final_w)} Tiles!')
-        case 0:
-            print(f"It's a Draw!")
+        print("\nFinal Game State:")
+        Othello.disp_game(final_w, final_b, True)
+
+    print(f'Wins: {winner}')
+    print(f'Black Tiles: {black}')
+    print(f'White Tiles: {white}')
+    # match winner:
+    #     case 1:
+    #         print(f'White has won by {int.bit_count(final_w) - int.bit_count(final_b)} Tiles!')
+    #     case -1:
+    #         print(f'Black has won by {int.bit_count(final_b) - int.bit_count(final_w)} Tiles!')
+    #     case 0:
+    #         print(f"It's a Draw!")
