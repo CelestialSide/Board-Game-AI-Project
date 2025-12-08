@@ -75,7 +75,7 @@ def update_board(move_dex, player, opponent):
             pos = pos + direct
 
         # If we finish at a piece doing the flanking, convert opponent pieces to player pieces
-        if pos >= 0 and read_bit(player, pos):
+        if pos >= 0 and read_bit(player, pos) and not ((pos % 8 == 0 and mask > 0) or (pos % 8 == 7 and mask < 0)):
             # print(inbetween, direct)
 
             pos = move_dex + direct
