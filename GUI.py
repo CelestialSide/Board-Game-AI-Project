@@ -4,7 +4,7 @@ import Othello
 
 
 class Display:
-    def __init__(self, height, width, boards):
+    def __init__(self, height, width, boards, player):
         self.HEIGHT = height
         self.WIDTH = width
         self.GRID_COUNT = 8 # The number of cells in a row and in a column.
@@ -13,9 +13,9 @@ class Display:
         self.BAR_WIDTH = 10
         self.bar_spacing = (self.WIDTH - (self.GRID_COUNT + 1) * self.BAR_WIDTH) / self.GRID_COUNT
 
-        self.setup_board(boards)
+        self.setup_board(boards, player)
 
-    def setup_board(self, boards):
+    def setup_board(self, boards, player):
         self.win.setBackground(color="green")
 
         horizontal_grid = [Rectangle
@@ -39,14 +39,20 @@ class Display:
             v_current_rec.draw(self.win)
             h_current_rec.draw(self.win)
 
-        self.set_board_display(boards)
+        self.set_board_display(boards, player_num=player)
 
-    def set_board_display(self, boards, player_num = 2):
+    def set_board_display(self, boards, player_num = 0):
         """
         boards[0] = current player board
         boards[1] = opponent board
         player_num = Int representing who is the player and who is the opponent.
         """
+        if player_num:
+            white = boards[0]
+            black = boards[1]
+        else:
+            white = boards[1]
+            black = boards[0]
         poss_moves = Othello.advanced_gen_moves(boards[0], boards[1])
 
         # Undraw current player pieces
@@ -58,7 +64,7 @@ class Display:
         circle_radius = self.bar_spacing / 2 - 5
 
         for i in range(pow(self.GRID_COUNT, 2)):
-            if Othello.read_bit(boards[0], i):
+            if Othello.read_bit(white, i):
                 x: int = (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 y: int = (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 center = Point(x, y)
@@ -67,7 +73,7 @@ class Display:
                 self.player_pieces.append(piece)
                 piece.draw(self.win)
 
-            elif Othello.read_bit(boards[1], i):
+            elif Othello.read_bit(black, i):
                 x: int = (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 y: int = (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 center = Point(x, y)

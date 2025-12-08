@@ -113,7 +113,7 @@ def game():
 
         valid_moves = Othello.get_valid_move_list(player, opponent)
         if len(valid_moves) > 0:
-            display = Display(500, 500, [player, opponent])
+            display = Display(500, 500, [player, opponent], turn % 2)
 
             while True:
                 if display:
