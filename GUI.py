@@ -4,7 +4,7 @@ import Othello
 
 
 class Display:
-    def __init__(self, height, width):
+    def __init__(self, height, width, boards):
         self.HEIGHT = height
         self.WIDTH = width
         self.GRID_COUNT = 8 # The number of cells in a row and in a column.
@@ -12,6 +12,8 @@ class Display:
         self.player_pieces = []
         self.BAR_WIDTH = 10
         self.bar_spacing = (self.WIDTH - (self.GRID_COUNT + 1) * self.BAR_WIDTH) / self.GRID_COUNT
+
+        self.setup_board(boards)
 
     def setup_board(self, boards):
         self.win.setBackground(color="green")
@@ -41,20 +43,16 @@ class Display:
 
     def set_board_display(self, boards, player_num = 2):
         """
-        boards[0] = Black board
-        boards[1] = White board
+        boards[0] = current player board
+        boards[1] = opponent board
         player_num = Int representing who is the player and who is the opponent.
         """
-
-        if player_num == 1:
-            poss_moves = Othello.advanced_gen_moves(boards[0], boards[1])
-        elif player_num == 2:
-            poss_moves = Othello.advanced_gen_moves(boards[1], boards[0])
+        poss_moves = Othello.advanced_gen_moves(boards[0], boards[1])
 
         # Undraw current player pieces
         if self.player_pieces:
             for i in range(len(self.player_pieces)):
-                self.player_pieces[i].undraw()
+                self.player_pieces[i].pop().undraw()
 
         circle_spacing = self.bar_spacing / 2
         circle_radius = self.bar_spacing / 2 - 5
@@ -87,9 +85,6 @@ class Display:
                 self.player_pieces.append(piece)
                 piece.draw(self.win)
 
-        valid_list = Othello.get_valid_move_list(boards[1], boards[0])
-        print(self.ask_user_input(valid_list))
-
     def is_valid(self, valid_moves, chosen_spot):
         for v in valid_moves:
             if v == chosen_spot:
@@ -97,12 +92,12 @@ class Display:
 
         return False
 
-    def ask_user_input(self, valid_moves):
+    def ask_user_input(self, valid_moves) -> int:
         print("Click a valid spot")
         while True:
             user_input = self.mouse_to_bit(self.win.getMouse())
             if self.is_valid(valid_moves, user_input):
-                return user_input
+                return int(user_input)
             else:
                 print("Not a valid move.")
 
@@ -112,6 +107,5 @@ class Display:
 
         return x + y * self.GRID_COUNT
 
-display = Display(500, 500)
-display.setup_board([68853694464, 34628173824])
-display.setup_board([34628173824, 68853694464])
+    def close(self):
+        self.win.close()
