@@ -147,9 +147,9 @@ def game(use_gui = False):
 
 
 if __name__ == '__main__':
-    final_w, final_b, tree_root = monte_carlo_game(cpu = False, use_gui=True, color = "White")
+    #final_w, final_b, tree_root = monte_carlo_game(cpu = False, use_gui=True, color = "White")
 
-    # final_w, final_b = game(use_gui=True)
+    final_w, final_b = game(use_gui=True)
 
     print("Final Game State:")
     Othello.disp_game(final_w, final_b, True)

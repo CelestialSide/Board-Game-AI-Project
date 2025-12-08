@@ -1,4 +1,7 @@
+import string
+
 from graphics import * # Package is called 'graphics.py'
+from networkx.algorithms.bipartite.basic import color
 
 import Othello
 
@@ -7,8 +10,9 @@ class Display:
     def __init__(self, height, width):
         self.HEIGHT = height
         self.WIDTH = width
+        self.LABEL_OFFSET = 20
         self.GRID_COUNT = 8 # The number of cells in a row and in a column.
-        self.win = GraphWin("Othello", width, height)
+        self.win = GraphWin("Othello", width + self.LABEL_OFFSET, height + self.LABEL_OFFSET)
         self.player_pieces = []
         self.BAR_WIDTH = 10
         self.bar_spacing = (self.WIDTH - (self.GRID_COUNT + 1) * self.BAR_WIDTH) / self.GRID_COUNT
@@ -17,14 +21,14 @@ class Display:
         self.win.setBackground(color="green")
 
         horizontal_grid = [Rectangle
-                           (Point(0, self.bar_spacing * i + self.BAR_WIDTH * i),
-                            Point(self.WIDTH, self.bar_spacing * i + self.BAR_WIDTH * i + self.BAR_WIDTH))
+                           (Point(0 + self.LABEL_OFFSET, self.bar_spacing * i + self.BAR_WIDTH * i + self.LABEL_OFFSET),
+                            Point(self.WIDTH + self.LABEL_OFFSET, self.bar_spacing * i + self.BAR_WIDTH * i + self.BAR_WIDTH + self.LABEL_OFFSET))
                            for i in range(self.GRID_COUNT + 1)]
 
         ## For the bars that are long. Vertical refers to how they are spaced.
         vertical_grid = [Rectangle
-                         (Point(self.bar_spacing * i + self.BAR_WIDTH * i,0),
-                          Point(self.bar_spacing * i + self.BAR_WIDTH * i + self.BAR_WIDTH, self.HEIGHT))
+                         (Point(self.bar_spacing * i + self.BAR_WIDTH * i + self.LABEL_OFFSET,0 + self.LABEL_OFFSET),
+                          Point(self.bar_spacing * i + self.BAR_WIDTH * i + self.BAR_WIDTH + self.LABEL_OFFSET, self.HEIGHT + self.LABEL_OFFSET))
                          for i in range(self.GRID_COUNT + 1)]
 
         for i in range(self.GRID_COUNT + 1):
@@ -36,6 +40,22 @@ class Display:
 
             v_current_rec.draw(self.win)
             h_current_rec.draw(self.win)
+
+            upper_case = string.ascii_uppercase
+            char_offset = (self.bar_spacing + self.BAR_WIDTH) / 2
+            letter_x = self.LABEL_OFFSET + char_offset * 2 * i + char_offset
+            letter_y = self.LABEL_OFFSET / 2
+            num_x = self.LABEL_OFFSET / 2
+            num_y = self.LABEL_OFFSET + char_offset * 2 * i + char_offset
+
+            current_char = Text(Point(letter_x, letter_y), upper_case[i])
+            current_num = Text(Point(num_x, num_y), str(i + 1))
+
+            current_char.setTextColor("white")
+            current_num.setTextColor("white")
+
+            current_char.draw(self.win)
+            current_num.draw(self.win)
 
         self.set_board_display(boards)
 
@@ -62,9 +82,11 @@ class Display:
         circle_radius = self.bar_spacing / 2 - 5
 
         for i in range(pow(self.GRID_COUNT, 2)):
+            x: int = self.LABEL_OFFSET
+            y: int = self.LABEL_OFFSET
             if Othello.read_bit(white, i):
-                x: int = (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
-                y: int = (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
+                x += (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
+                y += (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 center = Point(x, y)
                 piece = Circle(center, circle_radius)
                 piece.setFill(color="white")
@@ -72,8 +94,8 @@ class Display:
                 piece.draw(self.win)
 
             elif Othello.read_bit(black, i):
-                x: int = (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
-                y: int = (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
+                x += (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
+                y += (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 center = Point(x, y)
                 piece = Circle(center, circle_radius)
                 piece.setFill(color="black")
@@ -81,8 +103,8 @@ class Display:
                 piece.draw(self.win)
 
             elif Othello.read_bit(poss_moves, i):
-                x: int = (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
-                y: int = (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
+                x += (i % self.GRID_COUNT) * self.bar_spacing + (i % self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
+                y += (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 center = Point(x, y)
                 piece = Circle(center, circle_radius)
                 piece.setFill(color="green")
