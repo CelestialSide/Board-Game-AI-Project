@@ -12,6 +12,7 @@ def display_node(node, indent = 0):
 
     print(f'{display_indent}| visits: {node.visits}')
     print(f'{display_indent}| score: {node.score}')
+    if node.parent is not None: print(f'{display_indent}| UCT: {node.compute_UCT(2)}')
     print(f'{display_indent}| black: {int.bit_count(node.black)} Tiles')
     print(f'{display_indent}| white: {int.bit_count(node.white)} Tiles')
     print(f'{display_indent}|')
@@ -22,19 +23,23 @@ def create_root():
     return root
 
 def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
+    # Determining who black and white is and assigning to current player/opponent
     if turn_count % 2 == 0: player, opponent = black, white
     else: player, opponent = white, black
 
     last_turn_pass = False
     while True:
+        # Get all current valid moves
         valid_moves = o.get_valid_move_list(player, opponent)
+
+        # If the length is 0, then pass value is given (-1)
         if len(valid_moves) == 0: chosen_move = -1
         else: chosen_move = random.choice(valid_moves)
 
         if chosen_move == -1:
             if last_turn_pass:
                 # Game complete! Parsing who is black currently
-                #   Returns: White Board, Black Board
+                #   Returns: -1 if black won, 1 if white won, 0 if draw
                 if turn_count % 2 == 0:
                     return o.determine_winner(opponent, player)
                 else:
@@ -42,9 +47,11 @@ def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
             else:
                 last_turn_pass = True
         else:
+            # Update the board with chosen_move
             player, opponent = o.update_board(chosen_move, player, opponent)
             last_turn_pass = False
 
+        # Flips boards to current turn (White, Black --> Black, White    Black, White --> White, Black)
         player, opponent = opponent, player
         turn_count += 1
 
@@ -74,6 +81,7 @@ class MonteCarlo:
 
 
     def backpropagation(self, node, score):
+        # While not the root of the tree
         while node.parent is not None:
             if node.to_play:
                 node.score += score
@@ -89,7 +97,7 @@ class MonteCarlo:
         for child in node.children:
             self.display(child, indent + 1)
 
-def monte_carlo_tree_search(root = None, iterations = 1000):
+def monte_carlo_tree_search(root = None, iterations = 100):
     if root is None:
         tree = MonteCarlo(create_root())
     else:
@@ -98,8 +106,13 @@ def monte_carlo_tree_search(root = None, iterations = 1000):
 
     progress_bar = tqdm(range(iterations))
     for iteration in progress_bar:
+        #Returns Child that has available moves using UCT
         node = tree.selection(tree.root)
+
+        # Creates and returns Child node of Root
         child = tree.expansion(node)
+
+        #
         score = tree.simulation(child)
         tree.backpropagation(child, score)
 
