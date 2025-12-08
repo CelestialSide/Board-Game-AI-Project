@@ -34,6 +34,8 @@ class OthelloGames(Dataset):
         else:
             rand_len = len(moves)
 
+        rand_len = 0
+
         # Play out to this point in the game to get white & black bitboards
         white, black = 68853694464, 34628173824
 
@@ -42,6 +44,14 @@ class OthelloGames(Dataset):
 
         while move_dex < rand_len:
             if turn_count > 200:
+                Othello.disp_game(white, black, True)
+                print()
+                Othello.disp_game(white, black, False)
+                print()
+                print(moves[move_dex], moves[move_dex] // 8, moves[move_dex] % 8)
+                print(Othello.get_valid_move_list(white, black))
+                print(Othello.get_valid_move_list(black, white))
+
                 # Invalid game unique output
                 return torch.tensor(10, dtype=torch.long), torch.zeros(1)
 
@@ -69,16 +79,26 @@ class OthelloGames(Dataset):
                 turn_count += 1
 
         # Now, we need to convert those bitboards from numbers to structured data for a CNN
-        # This is a 2 x 8 x 8 tensor, which is essentially the two game boards stacked on top
-        # of each other.
-        board = torch.zeros((2,8,8))
+        # This is a 3 x 8 x 8 tensor, formatted as follows:
+        # Layer 0 - Player
+        # Layer 1 - Opponent
+        # Layer 2 - Valid Moves for Player (to help guide)
+        board = torch.zeros((3,8,8))
+
+        if turn_count % 2 == 0:
+            player, opponent = black, white
+        else:
+            player, opponent = white, black
+        move_board = Othello.advanced_gen_moves(player, opponent)
 
         for i in range(8):
             for j in range(8):
-                if Othello.read_bit(black, i*8+j):
+                if Othello.read_bit(player, i*8+j):
                     board[0, i, j] = 1
-                elif Othello.read_bit(white, i*8+j):
+                elif Othello.read_bit(opponent, i*8+j):
                     board[1, i, j] = 1
+                elif Othello.read_bit(move_board, i*8+j):
+                    board[2, i, j] = 1
 
         return torch.tensor(win_condition, dtype=torch.float32), board
 
@@ -90,22 +110,26 @@ class OthelloGames(Dataset):
 if __name__ == "__main__":
     # dat = OthelloGames(path="cleaned_games.csv")
     dat = OthelloGames(run_full_game=True)
+
+    item = dat[0]
+    print('hi')
+
     # print(len(dat))
 
-    dat_loader = DataLoader(dat, batch_size=1)
-
-    p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
-    count = 0
-    indices_to_remove = []
-    for i, batch in enumerate(p_bar):
-        a = batch[0]
-
-        if a[0].item() == 10:
-            indices_to_remove.append(i)
-            count += 1
-
-    clean_df = dat.csv.drop(index=indices_to_remove)
-    clean_df.to_csv("cleaned_games.csv", index=False)
-
-    print(count)
+    # dat_loader = DataLoader(dat, batch_size=1)
+    #
+    # p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
+    # count = 0
+    # indices_to_remove = []
+    # for i, batch in enumerate(p_bar):
+    #     a = batch[0]
+    #
+    #     if a[0].item() == 10:
+    #         indices_to_remove.append(i)
+    #         count += 1
+    #
+    # clean_df = dat.csv.drop(index=indices_to_remove)
+    # clean_df.to_csv("cleaned_games.csv", index=False)
+    #
+    # print(count)
 
