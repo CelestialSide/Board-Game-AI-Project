@@ -68,9 +68,6 @@ class OthelloGames(Dataset):
                 move_dex += 1
                 turn_count += 1
 
-        # Now, we need to convert those bitboards from numbers to structured data for a CNN
-        # This is a 2 x 8 x 8 tensor, which is essentially the two game boards stacked on top
-        # of each other.
         board = torch.zeros((2,8,8))
 
         for i in range(8):
