@@ -42,7 +42,7 @@ class Node:
                 new_white, new_black = o.update_board(move, self.white, self.black)
         else:
             # Pass -> boards unchanged
-            new_black, new_white = self.white, self.black
+            new_black, new_white = self.black, self.white
 
         self.available_moves.remove(move)
 

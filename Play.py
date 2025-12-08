@@ -17,9 +17,6 @@ def update_node(node, move):
     if node is None:
         node = mc.create_root()
 
-    if move == -1:
-        return node, move
-
     if move not in [child.move for child in node.children]:
         root = node.make_child(move)
     else:
@@ -28,7 +25,7 @@ def update_node(node, move):
 
 def get_move(player, opponent, montecarlo, root, iterations = 0):
     valid_moves = Othello.get_valid_move_list(player, opponent)
-    if len(valid_moves) < 1: return root, -1
+    if len(valid_moves) < 1: return update_node(root, -1)
 
     if montecarlo:
         return mc.monte_carlo_tree_search(root, iterations)
@@ -128,7 +125,9 @@ def game(num_players):
 
 
 if __name__ == '__main__':
-    final_w, final_b, tree_root = monte_carlo_game(cpu = False, color = "White")
+    for i in range(10):
+        print(f'\n Game {i}')
+        final_w, final_b, tree_root = monte_carlo_game(cpu = True, primary_iterations = 1000, secondary_iterations = 500)
 
     print("Final Game State:")
     Othello.disp_game(final_w, final_b, True)
