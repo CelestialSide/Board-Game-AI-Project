@@ -109,27 +109,24 @@ class OthelloGames(Dataset):
 
 if __name__ == "__main__":
     # dat = OthelloGames(path="cleaned_games.csv")
-    dat = OthelloGames(run_full_game=True)
-
-    item = dat[0]
-    print('hi')
+    dat = OthelloGames(run_full_game=True, train=False)
 
     # print(len(dat))
 
-    # dat_loader = DataLoader(dat, batch_size=1)
-    #
-    # p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
-    # count = 0
-    # indices_to_remove = []
-    # for i, batch in enumerate(p_bar):
-    #     a = batch[0]
-    #
-    #     if a[0].item() == 10:
-    #         indices_to_remove.append(i)
-    #         count += 1
-    #
-    # clean_df = dat.csv.drop(index=indices_to_remove)
-    # clean_df.to_csv("cleaned_games.csv", index=False)
-    #
-    # print(count)
+    dat_loader = DataLoader(dat, batch_size=1)
+
+    p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
+    count = 0
+    indices_to_remove = []
+    for i, batch in enumerate(p_bar):
+        a = batch[0]
+
+        if a[0].item() == 10:
+            indices_to_remove.append(i)
+            count += 1
+
+    clean_df = dat.csv.drop(index=indices_to_remove)
+    clean_df.to_csv("cleaned_games.csv", index=False)
+
+    print(count)
 
