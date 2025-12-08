@@ -1,9 +1,7 @@
 import torch
-import Othello
 import Data_Policy
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -32,7 +30,7 @@ class PolicyNetwork(nn.Module):
             nn.BatchNorm2d(2),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(2 * 8 * 8, 64),
+            nn.Linear(128, 64),
         )
 
     def forward(self, x):
@@ -45,7 +43,7 @@ def train_policy_net(policy_net, dataset, epochs=10, batch_size=32):
     loader = DataLoader(dataset, batch_size, shuffle=True)
 
     optimizer = torch.optim.Adam(policy_net.parameters(), 1e-3)
-
+    loss_fn = nn.CrossEntropyLoss()
     for epoch in range(epochs):
         p_bar = tqdm(loader, desc=f"Epoch {epoch + 1}")
         for _, batch in enumerate(p_bar):
@@ -53,9 +51,7 @@ def train_policy_net(policy_net, dataset, epochs=10, batch_size=32):
             optimizer.zero_grad()
 
             pred_policy = policy_net(boards)
-
-            # Cross-entropy with soft targets
-            loss = -(target_policy * torch.log(pred_policy + 1e-10)).sum(dim=1).mean()
+            loss = loss_fn(target_policy, pred_policy)
 
             loss.backward()
             optimizer.step()
