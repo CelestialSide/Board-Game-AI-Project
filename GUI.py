@@ -4,7 +4,7 @@ import Othello
 
 
 class Display:
-    def __init__(self, height, width, boards, player):
+    def __init__(self, height, width):
         self.HEIGHT = height
         self.WIDTH = width
         self.GRID_COUNT = 8 # The number of cells in a row and in a column.
@@ -13,9 +13,7 @@ class Display:
         self.BAR_WIDTH = 10
         self.bar_spacing = (self.WIDTH - (self.GRID_COUNT + 1) * self.BAR_WIDTH) / self.GRID_COUNT
 
-        self.setup_board(boards, player)
-
-    def setup_board(self, boards, player):
+    def setup_board(self, boards):
         self.win.setBackground(color="green")
 
         horizontal_grid = [Rectangle
@@ -39,7 +37,7 @@ class Display:
             v_current_rec.draw(self.win)
             h_current_rec.draw(self.win)
 
-        self.set_board_display(boards, player_num=player)
+        self.set_board_display(boards)
 
     def set_board_display(self, boards, player_num = 0):
         """
@@ -58,7 +56,7 @@ class Display:
         # Undraw current player pieces
         if self.player_pieces:
             for i in range(len(self.player_pieces)):
-                self.player_pieces[i].pop().undraw()
+                self.player_pieces.pop().undraw()
 
         circle_spacing = self.bar_spacing / 2
         circle_radius = self.bar_spacing / 2 - 5
