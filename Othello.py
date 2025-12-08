@@ -70,7 +70,7 @@ def update_board(move_dex, player, opponent):
         pos = move_dex + direct
 
         # Read how many opponent pieces are between the new piece and the other flanking piece
-        while pos >= 0 and read_bit(opponent, pos) and not ((pos % 8 == 0 and mask < 0) or (pos % 8 == 7 and mask > 0)):
+        while pos >= 0 and read_bit(opponent, pos) and not ((pos % 8 == 0 and mask > 0) or (pos % 8 == 7 and mask < 0)):
             inbetween += 1
             pos = pos + direct
 
