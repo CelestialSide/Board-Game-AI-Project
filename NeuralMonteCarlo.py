@@ -43,6 +43,41 @@ class NeuralMonteCarlo:
         for i in range(num_its):
             self.run_simulation()
 
+    def get_root_visit_distribution(self):
+        """
+        Return the probability distribution corresponding to how often
+        every child of the root was visited.
+        :return: A dictionary of (move, probability) pairs. -1 (pass) is moved to token 64
+        """
+        N = self.root.visits
+        dist = {}
+
+        for child in self.root.children:
+            child_move = child.move_to_reach
+
+            if child_move != -1:
+                dist[child_move] = child.visits / N
+            else:
+                dist[64] = child.visits / N
+
+        return dist
+
+    def get_move_to_play(self):
+        """
+        Get the move that should be played from the root's state
+        :return:
+        """
+
+        # The best move has the most visits
+        most_moves_dex = 0
+        most_moves = self.root.children[0].visits
+
+        for i in range(1, len(self.root.children)):
+            if self.root.children[i].visits > most_moves:
+                most_moves_dex = i
+                most_moves = self.root.children[i].visits
+
+        return self.root.children[most_moves_dex].move_to_reach
 
 
 # Convert board state into a tensor of size 1 x 3 x 8 x 8
