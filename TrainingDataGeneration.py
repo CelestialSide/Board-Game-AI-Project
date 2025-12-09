@@ -4,6 +4,9 @@ import math
 import torch
 from AlphaZeroNetwork import AlphaZeroNet
 from NeuralMonteCarlo import board_state_to_tensor, NeuralMonteCarlo
+from tqdm import tqdm
+import json
+from torch.utils.data import Dataset
 
 """
 Goal: Generate a bunch of training data from an AlphaZero-style network trying to learn to
@@ -32,7 +35,7 @@ def generate_game_data(network, mcts_its_per_turn=100):
             # Run mcts_its_per_turn simulations on the tree.
             mcts.run_iterations(mcts_its_per_turn)
 
-            # Add distribution and game state into data.
+            # Add policy distribution and game state into data.
             dist = mcts.get_root_visit_distribution()
             data.append([white, black, turn_count, dist])
 
@@ -70,9 +73,83 @@ def generate_game_data(network, mcts_its_per_turn=100):
 
         return data
 
+def add_to_buffer(buffer, games, max_buffer_size=100000):
+    buffer = buffer + games
+
+    if len(buffer) > max_buffer_size:
+        dif = len(buffer) - max_buffer_size
+
+        buffer = buffer[dif:]
+
+    return buffer
+
+def add_games_to_buffer(buffer, network, num_games, max_buffer_size=100000, mcts_its_per_turn=100):
+    games = []
+    p_bar = tqdm(range(num_games), desc="Playing out Games")
+
+    for i in p_bar:
+        dat = generate_game_data(network, mcts_its_per_turn=mcts_its_per_turn)
+
+        games = games + dat
+
+    return add_to_buffer(buffer, games, max_buffer_size=max_buffer_size)
+
+class PlayDataset(Dataset):
+    """
+    This class houses a dataset that contains a replay buffer of games an AlphaZero model has played.
+    By training off of these games, it learns to improve itself.
+    """
+
+    def __init__(self, filepath=' ', buffer=None, max_buffer_size=60000):
+        self.buffer = buffer
+        self.max_buffer_size = max_buffer_size
+
+        if filepath != ' ' and self.buffer is None:
+            self.read(filepath)
+
+        if self.buffer is None:
+            self.buffer = []
+
+    def __len__(self):
+        return len(self.buffer)
+
+    def __getitem__(self, item):
+        white, black, turn_count, dist, value = self.buffer[item]
+
+        # Load board state as a tensor
+        state = board_state_to_tensor(white, black, turn_count)[0]
+
+        # Translate the policy distribution into a tensor to get the policy target
+        policy = torch.zeros((65,), dtype=torch.float32)
+
+        for key in dist.keys():
+            if key != -1:
+                policy[int(key)] = dist[key]
+            else:
+                policy[64] = dist[key]
+
+        # Convert the value into a torch datatype
+        value = torch.tensor(value, dtype=torch.float32)
+
+        return state, policy, value
+
+    def play_games(self, network, num_games=60, mcts_its_per_turn=100):
+        self.buffer = add_games_to_buffer(self.buffer, network, num_games, self.max_buffer_size, mcts_its_per_turn)
+
+    def save_as(self, filepath):
+        with open(filepath, 'w', encoding='utf-8') as file:
+            json.dump(self.buffer, file)
+
+    def read(self, filepath):
+        with open(filepath, 'r', encoding='utf-8') as file:
+            self.buffer = json.load(file)
+
+
+
 if __name__ == '__main__':
     model = AlphaZeroNet()
 
-    dat = generate_game_data(model, mcts_its_per_turn=100)
+    dat = PlayDataset(filepath="self_play.json")
+    dat.play_games(model, 40)
 
-    print('hi')
+    dat.save_as("self_play.json")
