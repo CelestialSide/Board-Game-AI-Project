@@ -53,6 +53,7 @@ def train(network, play_dat : PlayDataset, batch_size, epochs, lr=1e-3, mcts_ste
 
 if __name__ == '__main__':
     net = AlphaZeroNet()
-    dat = PlayDataset('self_play.json')
+    net.load_state_dict(torch.load("zero.pt"))
+    dat = PlayDataset('zero_games.json')
 
     train(net, dat, 32, 10, 1e-3)
