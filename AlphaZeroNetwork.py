@@ -90,4 +90,5 @@ def train(batch_size = 32, num_epochs = 10):
 
             p_bar.set_postfix({'policy loss': loss_policy.item(), 'value loss': loss_value.item()})
 
-train()
+if __name__ == '__main__':
+    train()

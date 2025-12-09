@@ -2,6 +2,7 @@ import Othello as o
 import random
 import math
 import torch
+from AlphaZeroNetwork import AlphaZeroNet
 
 class NeuralMonteCarlo:
 
@@ -41,6 +42,8 @@ class NeuralMonteCarlo:
     def run_iterations(self, num_its):
         for i in range(num_its):
             self.run_simulation()
+
+
 
 # Convert board state into a tensor of size 1 x 3 x 8 x 8
 def board_state_to_tensor(white, black, turn_count):
@@ -97,7 +100,8 @@ class Node:
 
         # Backpropagate value through the tree
         value = v[0].item()
-        self.backpropogate(value)
+        if self.parent is not None:
+            self.parent.backpropogate(value) # We start with parent since we haven't visited this node - only created it.
 
         # Translate p to only include probabilities for valid moves
         mask = [False] * 65
@@ -108,7 +112,8 @@ class Node:
                 mask[64] = True
         mask_t = torch.tensor(mask, dtype=torch.bool)
 
-        p[~mask_t] = -1e9 # Mask illegal moves with large negative coefficient
+        p = p[0]
+        p[~mask_t] = -1e9 # Mask illegal moves with large negative coefficient. Goes to 0 in softmax.
         dist = torch.softmax(p, dim=0)
 
         # Look-up table for the probability to make a certain action, based on the network.
@@ -117,7 +122,7 @@ class Node:
             move = self.available_moves[i]
 
             if move != -1:
-                self.probabilities[move] = dist[i].item()
+                self.probabilities[move] = dist[move].item()
             else:
                 self.probabilities[move] = dist[64].item()
 
@@ -153,6 +158,18 @@ class Node:
             self.parent.backpropogate(-value)
 
     def determine_PUCT(self, c):
-        q = self.score / self.visits
+        q = 0
+        if self.visits > 0:
+            q = self.score / self.visits
         p = c * self.parent.probabilities[self.move_to_reach] * math.sqrt(self.parent.visits) / (1 + self.visits)
         return q + p
+
+
+if __name__ == '__main__':
+    model = AlphaZeroNet()
+
+    mc = NeuralMonteCarlo(model)
+
+    mc.run_iterations(20)
+
+    print('hi')
