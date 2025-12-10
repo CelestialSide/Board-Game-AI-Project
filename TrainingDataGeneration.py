@@ -149,7 +149,7 @@ class PlayDataset(Dataset):
 if __name__ == '__main__':
     model = AlphaZeroNet()
 
-    dat = PlayDataset(filepath="self_play.json")
+    dat = PlayDataset(filepath="Data/self_play.json")
     dat.play_games(model, 40)
 
     dat.save_as("self_play.json")
