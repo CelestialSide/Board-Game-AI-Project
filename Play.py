@@ -4,6 +4,9 @@ import re
 import MonteCarlo as mc
 from GUI import Display
 
+def convert_move_to_index(move):
+    square = list(move.upper())
+    return 8 * (int(square[1]) - 1) + ord(square[0]) - 65
 
 def player_turn(black, white, turn, player_color, root, iterations, display):
     match player_color:
