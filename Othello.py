@@ -33,7 +33,7 @@ def advanced_gen_moves(player, opponent):
     shift_boards(player_boards)
 
     # Now, for the initial loop
-    for l in range(1, 7):  # Possible lengths of continuous enemy pieces ~ [1,7]
+    for l in range(1, 7):  # Possible lengths of continuous enemy pieces ~ [1,7)
         # Update opponent boards
         shift_boards(opponent_boards)
 
@@ -138,15 +138,24 @@ if __name__ == '__main__':
     white = 0
     black = 0
 
-    black = set_bit(black, 24)
-    black = set_bit(black, 23)
-    black = set_bit(black, 30)
-    white = set_bit(white, 25)
-    white = set_bit(white, 38)
+    board_state = [
+        ["O", "O", "O", "O", "O", "O", "O", "O"],
+        ["O", "O", "O", "O", "O", "O", "O", "O"],
+        ["O", "O", "O", "O", "O", "O", "W", "O"],
+        ["O", "O", "O", "B", "B", "W", "O", "O"],
+        ["O", "O", "B", "B", "B", "B", "O", "O"],
+        ["O", "O", "W", "W", "O", "W", "B", "O"],
+        ["O", "O", "O", "W", "O", "O", "O", "O"],
+        ["O", "O", "O", "O", "O", "O", "O", "O"]
+    ]
 
-    disp_game(white, black, white)
+    for i in range(8):
+        for j in range(8):
+            if board_state[i][j] == "B":
+                black = set_bit(black, i*8+j)
+            elif board_state[i][j] == "W":
+                white = set_bit(white, i*8+j)
+
+    disp_game(white, black, True)
     print()
-
-    white, black = update_board(22, white, black)
-
-    disp_game(white, black, black)
+    disp_game(white, black, False)
