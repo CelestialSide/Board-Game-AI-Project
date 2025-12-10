@@ -7,6 +7,11 @@ from GUI import Display
 
 
 def player_turn(black, white, turn, player_color, root, iterations, display):
+def convert_move_to_index(move):
+    square = list(move.upper())
+    return 8 * (int(square[1]) - 1) + ord(square[0]) - 65
+
+def player_turn(black, white, turn, player_color, root, iterations, display):
     match player_color:
         case 'Black':
             if turn % 2:return get_move(white, black, True, root, iterations)
@@ -145,23 +150,26 @@ def game(use_gui = False):
 
 
 if __name__ == '__main__':
-    winner = 0
-    black = 0
-    white = 0
 
-    for i in range(20):
-        print(f'Game {i + 1}')
-        final_w, final_b, tree_root = monte_carlo_game(cpu = True, primary_iterations = 250, secondary_iterations = 500)
-        winner += Othello.determine_winner(final_w, final_b)
-        black += int.bit_count(final_b)
-        white += int.bit_count(final_w)
+    game(True)
 
-        print("\nFinal Game State:")
-        Othello.disp_game(final_w, final_b, True)
-
-    print(f'Wins: {winner}')
-    print(f'Black Tiles: {black}')
-    print(f'White Tiles: {white}')
+    # winner = 0
+    # black = 0
+    # white = 0
+    #
+    # for i in range(20):
+    #     print(f'Game {i + 1}')
+    #     final_w, final_b, tree_root = monte_carlo_game(cpu = True, primary_iterations = 250, secondary_iterations = 500)
+    #     winner += Othello.determine_winner(final_w, final_b)
+    #     black += int.bit_count(final_b)
+    #     white += int.bit_count(final_w)
+    #
+    #     print("\nFinal Game State:")
+    #     Othello.disp_game(final_w, final_b, True)
+    #
+    # print(f'Wins: {winner}')
+    # print(f'Black Tiles: {black}')
+    # print(f'White Tiles: {white}')
     # match winner:
     #     case 1:
     #         print(f'White has won by {int.bit_count(final_w) - int.bit_count(final_b)} Tiles!')
