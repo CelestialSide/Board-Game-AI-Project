@@ -12,7 +12,11 @@ def display_node(node, indent = 0):
 
     print(f'{display_indent}| visits: {node.visits}')
     print(f'{display_indent}| score: {node.score}')
-    if node.parent is not None: print(f'{display_indent}| UCT: {node.compute_UCT(2)}')
+    print(f'{display_indent}| Available Moves: {node.available_moves}')
+    print(f'{display_indent}| Explored Moves: {[child.move for child in node.children]}')
+    if node.parent is not None:
+        print(f'{display_indent}| UCT: {node.compute_UCT(2)}')
+        print(f'{display_indent}| Move: {node.move}')
     print(f'{display_indent}| black: {int.bit_count(node.black)} Tiles')
     print(f'{display_indent}| white: {int.bit_count(node.white)} Tiles')
     print(f'{display_indent}|')
@@ -61,9 +65,9 @@ class MonteCarlo:
         self.root = root
 
 
-    def selection(self, node):
+    def selection(self, node, C):
         while node.is_explored():
-            utc = [(child, child.compute_UCT(2)) for child in node.children]
+            utc = [(child, child.compute_UCT(C)) for child in node.children]
             max_utc = max([child[1] for child in utc])
             selected_node = random.choice([child for child in utc if child[1] == max_utc])[0]
             node = selected_node
@@ -97,7 +101,7 @@ class MonteCarlo:
         for child in node.children:
             self.display(child, indent + 1)
 
-def monte_carlo_tree_search(root = None, iterations = 100):
+def monte_carlo_tree_search(root = None, iterations = 100, C = 2):
     if root is None:
         tree = MonteCarlo(create_root())
     else:
@@ -107,7 +111,7 @@ def monte_carlo_tree_search(root = None, iterations = 100):
     progress_bar = tqdm(range(iterations))
     for iteration in progress_bar:
         #Returns Child that has available moves using UCT
-        node = tree.selection(tree.root)
+        node = tree.selection(tree.root, C)
 
         # Creates and returns Child node of Root
         child = tree.expansion(node)

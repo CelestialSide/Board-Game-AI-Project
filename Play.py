@@ -1,5 +1,4 @@
-import random
-
+import Board as b
 import Othello
 import re
 import MonteCarlo as mc
@@ -16,24 +15,27 @@ def player_turn(black, white, turn, player_color, root, iterations, display):
             else: return get_move(black, white, True, root, iterations)
         case _: raise Exception('Invalid Player Color')
 
+ # Update Node will create a root Node if not already created. Then it will check if
+ #   the move given was already explored: if it was it will return that node
+ #   along with the move, otherwise it will create a new child node.
 def update_node(node, move):
     if node is None:
         node = mc.create_root()
-
 
     if move not in [child.move for child in node.children]:
         root = node.make_child(move)
     else:
         root = next(child for child in node.children if child.move == move)
+
     return root, move
 
-def get_move(player, opponent, montecarlo, root, iterations = 0, display = None):
+def get_move(player, opponent, montecarlo, root, iterations = 0, display = None, C = 2):
     valid_moves = Othello.get_valid_move_list(player, opponent)
 
-    if len(valid_moves) < 1: return root, -1
+    if len(valid_moves) < 1: return update_node(root, -1)
 
     if montecarlo:
-        return mc.monte_carlo_tree_search(root, iterations)
+        return mc.monte_carlo_tree_search(root, iterations, C)
     else:
         while True:
             if display:
@@ -48,9 +50,12 @@ def get_move(player, opponent, montecarlo, root, iterations = 0, display = None)
                     else: print("Not a Valid Move")
                 else: print("Invalid Input")
 
-def monte_carlo_game(cpu = True, use_gui = False, color = None, primary_iterations = 1000, secondary_iterations = 1000):
+def monte_carlo_game(cpu = True, use_gui = False, color = None,
+                     primary_iterations = 1000, secondary_iterations = 1000,
+                     primary_C = 2, secondary_C = 2):
     player = black = 68853694464
     opponent = white = 34628173824
+    game_code = ''
     primary_root = None
     secondary_root = None
 
@@ -67,12 +72,13 @@ def monte_carlo_game(cpu = True, use_gui = False, color = None, primary_iteratio
 
         if cpu:
             if turn % 2 == 0:
-                primary_root, chosen_move = get_move(black, white, True,
-                                                     primary_root, primary_iterations)
+                primary_root, chosen_move = get_move(black, white, True, primary_root,
+                                                     primary_iterations, None, primary_C)
                 secondary_root, _ = update_node(secondary_root, chosen_move)
             else:
                 secondary_root, chosen_move = get_move(white, black, True,
-                                                       secondary_root, secondary_iterations)
+                                                       secondary_root, secondary_iterations,
+                                                       None, secondary_C)
                 primary_root, _ = update_node(primary_root, chosen_move)
         else:
             if display and turn > 0:
@@ -83,18 +89,15 @@ def monte_carlo_game(cpu = True, use_gui = False, color = None, primary_iteratio
         if chosen_move == -1:
             if last_turn_pass:
                 # Game is Complete!
-                while primary_root.parent is not None: primary_root = primary_root.parent
-                if cpu:
-                    while secondary_root.parent is not None: secondary_root = secondary_root.parent
-                    return white, black, (primary_root, secondary_root)
 
-                return white, black, (primary_root, None)
+                return white, black, game_code
             else:
                 last_turn_pass = True
         else:
             player, opponent = Othello.update_board(chosen_move, player, opponent)
             last_turn_pass = False
 
+        game_code += f' {chr(chosen_move % 8 + 65)}{chosen_move // 8 + 1}'
         player, opponent = opponent, player
         black = player if turn % 2 else opponent
         white = opponent if turn % 2 else player
@@ -146,22 +149,27 @@ def game(use_gui = False):
 
 if __name__ == '__main__':
     winner = 0
-    black = 0
-    white = 0
+    black_tiles = 0
+    white_tiles = 0
 
     for i in range(20):
         print(f'Game {i + 1}')
-        final_w, final_b, tree_root = monte_carlo_game(cpu = True, primary_iterations = 250, secondary_iterations = 500)
+        final_w, final_b, full_gc = monte_carlo_game(cpu = True,
+                                                     primary_iterations = 1000,
+                                                     secondary_iterations = 1000,
+                                                     primary_C = 2**.5, secondary_C = 1)
         winner += Othello.determine_winner(final_w, final_b)
-        black += int.bit_count(final_b)
-        white += int.bit_count(final_w)
+        black_tiles += int.bit_count(final_b)
+        white_tiles += int.bit_count(final_w)
 
         print("\nFinal Game State:")
         Othello.disp_game(final_w, final_b, True)
+        print(f'Game Code: {full_gc}')
 
     print(f'Wins: {winner}')
-    print(f'Black Tiles: {black}')
-    print(f'White Tiles: {white}')
+    print(f'Black Tiles: {black_tiles}')
+    print(f'White Tiles: {white_tiles}')
+
     # match winner:
     #     case 1:
     #         print(f'White has won by {int.bit_count(final_w) - int.bit_count(final_b)} Tiles!')
