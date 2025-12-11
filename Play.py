@@ -149,7 +149,7 @@ def game(use_gui = False):
 
 if __name__ == '__main__':
 
-    game(True)
+    game(False)
 
     # winner = 0
     # black = 0

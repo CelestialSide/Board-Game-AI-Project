@@ -6,7 +6,7 @@ from AlphaZeroNetwork import AlphaZeroNet
 
 class NeuralMonteCarlo:
 
-    def __init__(self, network, white=34628173824, black=68853694464, turn_count=0, move_to_reach=-1):
+    def __init__(self, network, white=68853694464, black=34628173824, turn_count=0, move_to_reach=-1):
         self.root = Node(network, None, white, black, turn_count, move_to_reach)
         self.network = network
 
@@ -104,7 +104,7 @@ def board_state_to_tensor(white, black, turn_count):
 
 class Node:
 
-    def __init__(self, network, parent=None, white=34628173824, black=68853694464, turn_count=0, move_to_reach=-1):
+    def __init__(self, network, parent=None, white=68853694464, black=34628173824, turn_count=0, move_to_reach=-1):
         # Properties relevant to a node of a monte carlo tree
         self.parent = parent
         self.children = []
