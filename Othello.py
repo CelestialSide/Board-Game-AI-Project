@@ -132,6 +132,11 @@ def determine_winner(white, black):
     else:
         return -1 # Black wins!
 
+def is_game_over(white, black):
+    b1 = advanced_gen_moves(white, black)
+    b2 = advanced_gen_moves(black, white)
+
+    return b1 + b2 == 0
 
 if __name__ == '__main__':
 
