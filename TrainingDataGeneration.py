@@ -17,8 +17,8 @@ def generate_game_data(network, mcts_its_per_turn=100):
     network = network.eval()
     with torch.no_grad():
         # Initalize board state
-        white = 34628173824
-        black = 68853694464
+        white = 68853694464
+        black = 34628173824
         turn_count = 0
         pass_last_turn = False
 

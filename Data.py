@@ -1,3 +1,5 @@
+import json
+
 import Othello
 import torch
 import pandas as pd
@@ -43,17 +45,6 @@ class OthelloGames(Dataset):
         move_dex = 0
 
         while move_dex < rand_len:
-            if turn_count > 200:
-                Othello.disp_game(white, black, True)
-                print()
-                Othello.disp_game(white, black, False)
-                print()
-                print(moves[move_dex], moves[move_dex] // 8, moves[move_dex] % 8)
-                print(Othello.get_valid_move_list(white, black))
-                print(Othello.get_valid_move_list(black, white))
-
-                # Invalid game unique output
-                return torch.tensor(10, dtype=torch.long), torch.zeros(1)
 
             if turn_count % 2 == 0:
                 player, opponent = black, white
@@ -107,26 +98,102 @@ class OthelloGames(Dataset):
 
 
 
+def build_buffer_from_csv(filepath="Data/othello_dataset.csv", savepath="Data/expert_start.json"):
+    """
+    Translate a csv file (structured like othello_dataset.csv) into a data format fit for the
+    AlphaZeroNetwork to train off of. (Single Entry -> Single Move)
+    :param filepath:
+    :return:
+    """
+
+    csv = pd.read_csv(filepath)
+    data = []
+
+    p_bar = tqdm(range(csv.shape[0]), desc="Compiling Games")
+    for i in p_bar:
+        # Win Condition Meanings:
+        # -1 - White wins
+        # 0 - Draw
+        # 1 - Black wins
+        win_condition = csv.iloc[i, 1]
+
+        moves = csv.iloc[i, 2]
+        moves = [p.convert_move_to_index(moves[2 * i:2 * i + 2]) for i in range(len(moves) // 2)]
+
+        # Play out moves, recording the game state at the start of each move.
+        white, black = 68853694464, 34628173824
+        game_dat = []
+
+        turn_count = 0
+        move_dex = 0
+
+        while move_dex < len(moves):
+            relative_value = win_condition
+
+            if turn_count % 2 == 0:
+                player, opponent = black, white
+            else:
+                player, opponent = white, black
+                relative_value *= -1
+
+            possible_moves = Othello.get_valid_move_list(player, opponent)
+
+            policy_dict = {}
+
+            # Create policy data
+            pass_ = False
+            if moves[move_dex] not in possible_moves:
+                policy_dict[-1] = 1.0
+                pass_ = True
+            else:
+                policy_dict[moves[move_dex]] = 1.0
+
+            # Record the data given the current (upcoming) move.
+            game_dat.append([white, black, turn_count, policy_dict, int(relative_value)])
+
+            # Now, move on to the next board state
+            if not pass_:
+                player, opponent = Othello.update_board(moves[move_dex], player, opponent)
+
+                if turn_count % 2 == 0:
+                    black, white = player, opponent
+                else:
+                    white, black = player, opponent
+
+                move_dex += 1
+            turn_count += 1
+
+        # Append game data
+        data = data + game_dat
+
+    # Save data
+    with open(savepath, 'w', encoding='utf-8') as file:
+        json.dump(data, file)
+
+
+
+
 if __name__ == "__main__":
+    build_buffer_from_csv()
     # dat = OthelloGames(path="cleaned_games.csv")
-    dat = OthelloGames(run_full_game=True, train=False)
-
-    # print(len(dat))
-
-    dat_loader = DataLoader(dat, batch_size=1)
-
-    p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
-    count = 0
-    indices_to_remove = []
-    for i, batch in enumerate(p_bar):
-        a = batch[0]
-
-        if a[0].item() == 10:
-            indices_to_remove.append(i)
-            count += 1
-
-    clean_df = dat.csv.drop(index=indices_to_remove)
-    clean_df.to_csv("cleaned_games.csv", index=False)
-
-    print(count)
+    # dat = OthelloGames(run_full_game=True, train=False)
+    #
+    # # print(len(dat))
+    #
+    # dat_loader = DataLoader(dat, batch_size=1)
+    #
+    # p_bar = tqdm(dat_loader, desc="Checking for erroneous moves.")
+    # count = 0
+    # indices_to_remove = []
+    # for i, batch in enumerate(p_bar):
+    #     a = batch[0]
+    #
+    #     if a[0].item() == 10:
+    #         indices_to_remove.append(i)
+    #         count += 1
+    #
+    # clean_df = dat.csv.drop(index=indices_to_remove)
+    # clean_df.to_csv("cleaned_games.csv", index=False)
+    #
+    # print(count)
 
