@@ -100,12 +100,12 @@ class PlayDataset(Dataset):
     By training off of these games, it learns to improve itself.
     """
 
-    def __init__(self, filepath=' ', buffer=None, max_buffer_size=60000):
+    def __init__(self, filepath=' ', buffer=None, max_buffer_size=60000, pre_load_cap=40000):
         self.buffer = buffer
         self.max_buffer_size = max_buffer_size
 
         if filepath != ' ' and self.buffer is None:
-            self.read(filepath)
+            self.read(filepath, pre_load_cap)
 
         if self.buffer is None:
             self.buffer = []
@@ -140,9 +140,12 @@ class PlayDataset(Dataset):
         with open(filepath, 'w', encoding='utf-8') as file:
             json.dump(self.buffer, file)
 
-    def read(self, filepath):
+    def read(self, filepath, cap=-1):
         with open(filepath, 'r', encoding='utf-8') as file:
             self.buffer = json.load(file)
+        
+        if cap != -1 and len(self.buffer) > cap:
+            self.buffer = self.buffer[:cap]
 
 
 
