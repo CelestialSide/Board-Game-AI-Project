@@ -28,7 +28,7 @@ def generate_game_data(network, mcts_its_per_turn=100):
         while True:
             turn = turn_count % 2 == 0
 
-            # Evaluate a MCTS for the current move -> Generates a policy probability distribution.
+            # Evaluate MCTS for the current move -> Generates a policy probability distribution.
             # This distribution is stored as a dictionary.
             mcts = NeuralMonteCarlo(network, white, black, turn_count)
 

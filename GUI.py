@@ -1,7 +1,6 @@
 import string
 
 from graphics import * # Package is called 'graphics.py'
-from networkx.algorithms.bipartite.basic import color
 
 import Othello
 
