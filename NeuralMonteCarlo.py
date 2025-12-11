@@ -35,9 +35,19 @@ class NeuralMonteCarlo:
 
             current_node = current_node.children[selected_child]
 
-        # We are now guaranteed to have unexplored moves. Create a new child at this node.
-        # Backpropagation is automatically performed via creating the node. (See Node init)
-        current_node.make_child(self.network)
+        # If the game is over in the current state, don't make more children. Get value from direct
+        # board result
+        if o.is_game_over(current_node.white, current_node.black):
+            winner = o.determine_winner(current_node.black, current_node.white) # 1 - Black, 0 - Draw, -1 - White
+            if current_node.turn_count % 2 == 1:
+                winner *= -1
+
+            current_node.backpropogate(winner)
+
+        else:
+            # We are now guaranteed to have unexplored moves. Create a new child at this node.
+            # Backpropagation is automatically performed via creating the node. (See Node init)
+            current_node.make_child(self.network)
 
     def run_iterations(self, num_its):
         for i in range(num_its):
@@ -135,6 +145,7 @@ class Node:
 
         # Backpropagate value through the tree
         value = v[0].item()
+        self.intial_value = value
         if self.parent is not None:
             self.parent.backpropogate(value) # We start with parent since we haven't visited this node - only created it.
 
@@ -189,8 +200,13 @@ class Node:
         self.score += value
         self.visits += 1
 
-        if self.parent is not None:
-            self.parent.backpropogate(-value)
+        current_node = self.parent
+        current_value = -value
+        while current_node is not None:
+            current_node.backpropogate(current_value)
+
+            current_value *= -1
+            current_node = current_node.parent
 
     def determine_PUCT(self, c):
         q = 0
