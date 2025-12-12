@@ -137,10 +137,10 @@ game_params = {
     'primary_C': 2**.5,
 
     'primary_network': net_1,
-    'primary_network_iterations': 300,
+    'primary_network_iterations': 100,
 
     # Player 2
-    'secondary_carlo_iterations': 300,
+    'secondary_carlo_iterations': 100,
     'secondary_C': 2 ** .5,
 
     'secondary_network': net_2,
