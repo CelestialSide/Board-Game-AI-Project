@@ -62,13 +62,16 @@ class NeuralMonteCarlo:
         N = self.root.visits
         dist = {}
 
-        for child in self.root.children:
-            child_move = child.move_to_reach
+        if len(self.root.children) == 0:
+            dist[-1] = 1.0
+        else:
+            for child in self.root.children:
+                child_move = child.move_to_reach
 
-            if child_move != -1:
-                dist[child_move] = child.visits / N
-            else:
-                dist[64] = child.visits / N
+                if child_move != -1:
+                    dist[child_move] = child.visits / N
+                else:
+                    dist[-1] = child.visits / N
 
         return dist
 
@@ -77,6 +80,10 @@ class NeuralMonteCarlo:
         Get the move that should be played from the root's state
         :return:
         """
+
+        # If no children, we must pass (terminal node)
+        if len(self.root.children) == 0:
+            return -1
 
         # The best move has the most visits
         most_moves_dex = 0
@@ -145,7 +152,6 @@ class Node:
 
         # Backpropagate value through the tree
         value = v[0].item()
-        self.intial_value = value
         if self.parent is not None:
             self.parent.backpropogate(value) # We start with parent since we haven't visited this node - only created it.
 
@@ -187,7 +193,7 @@ class Node:
                 new_white, new_black = o.update_board(move, self.white, self.black)
         else:
             # Pass -> boards unchanged
-            new_black, new_white = self.white, self.black
+            new_white, new_black = self.white, self.black
 
         self.available_moves.remove(move)
 
@@ -203,7 +209,8 @@ class Node:
         current_node = self.parent
         current_value = -value
         while current_node is not None:
-            current_node.backpropogate(current_value)
+            current_node.score += current_value
+            current_node.visits += 1
 
             current_value *= -1
             current_node = current_node.parent
