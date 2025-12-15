@@ -4,9 +4,10 @@ import math
 
 class Node:
 
-    def __init__(self, parent=None, white=34628173824, black=68853694464, move = -1, turn_count=0):
+    def __init__(self, parent=None, white=68853694464, black=34628173824, move = -1, turn_count=0):
         # Properties relevant to a node of a monte carlo tree
         self.parent = parent
+        self.terminal = False
         self.children = []
 
         self.visits = 0
@@ -20,6 +21,7 @@ class Node:
 
         # Note: When true, black is to play. When false, white is to play
         self.to_play = turn_count % 2 == 0
+        if o.is_game_over(white, black): self.terminal = True
 
         if self.to_play:
             self.available_moves = o.get_valid_move_list(black, white)

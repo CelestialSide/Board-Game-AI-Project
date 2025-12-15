@@ -16,7 +16,6 @@ def update_node(node, move):
     :param move: Game Move
     :return: root, move
     """
-
     if node is None:
         node = mc.create_root()
 
@@ -42,6 +41,7 @@ class Player:
         self.player_type = player_type
         self.board = board
         self.root = None
+        self.neural = None
 
         match player_type:
             case 'carlo': # Monte Carlo Tree Search Algorithm
@@ -53,18 +53,17 @@ class Player:
                     self.C = game_param['secondary_C']
             case 'neural': # Neural Network
                 if initial:
-                    self.network = game_param['primary_network']
+                    self.neural = NeuralMonteCarlo(network=game_param['primary_network'])
                     self.network_iterations = game_param['primary_network_iterations']
                 else:
-                    self.network = game_param['secondary_network']
+                    self.neural = NeuralMonteCarlo(network = game_param['primary_network'])
                     self.network_iterations = game_param['secondary_network_iterations']
 
-    def get_move(self, player_2, turn, display):
+    def get_move(self, player_2, display):
         """
         Get move takes in all current information necessary to get the next move
             of the game and then returns said move after updating all trees.
         :param player_2: The other player, which includes the other board and root.
-        :param turn: Determines which board is black or white for the neural network
         :param display: Needed for GUI function when human is playing
         :return: Move chosen by Player
         """
@@ -85,11 +84,8 @@ class Player:
                 move = display.ask_user_input(valid_moves)
                 self.root = update_node(self.root, move)
             case 'neural':
-                if not turn % 2: mcts = NeuralMonteCarlo(self.network, player_2.board, self.board, turn)
-                else: mcts = NeuralMonteCarlo(self.network, self.board, player_2.board, turn)
-
-                mcts.run_iterations(self.network_iterations)
-                move = mcts.get_move_to_play(temperature=0)
+                self.neural.run_iterations(self.network_iterations)
+                move = self.neural.get_move_to_play()
 
                 self.root = update_node(self.root, move)
             case 'random':
@@ -97,7 +93,7 @@ class Player:
                 self.root = update_node(self.root, move)
             case _: raise Exception("Invalid Player Type!")
 
-        # Updates other player's node with move
+        # Updates other player's node and neural tree with move
         player_2.root = update_node(player_2.root, move)
         return move
 
@@ -112,8 +108,8 @@ def game(P1, P2, game_param):
     """
 
     # Initialize Players
-    black = Player(P1, 68853694464, game_param, False)
-    white = Player(P2, 34628173824, game_param, True)
+    black = Player(P1, 34628173824, game_param, True)
+    white = Player(P2, 68853694464, game_param, False)
 
     game_code = ''
     turn = 0
@@ -126,10 +122,10 @@ def game(P1, P2, game_param):
     while True: # Game loop
         if not turn % 2: # Black's turn
             display.set_board_display([black.board, white.board], turn % 2)
-            move = black.get_move(white, turn, display)
+            move = black.get_move(white, display)
         else: # White's turn
             display.set_board_display([white.board, black.board], turn % 2)
-            move = white.get_move(black, turn, display)
+            move = white.get_move(black, display)
 
         if move == -1:
             if last_turn_pass:
@@ -144,8 +140,14 @@ def game(P1, P2, game_param):
             else: white.board, black.board = Othello.update_board(move, white.board, black.board)
             last_turn_pass = False
         game_code += f' {chr(move % 8 + 65)}{move // 8 + 1}'
-
         turn += 1
+
+        # Updates Neural Network if present
+        if black.player_type == 'neural':
+            black.neural.shift_root(white.board, black.board, turn, move)
+        if white.player_type == 'neural':
+            white.neural.shift_root(white.board, black.board, turn, move)
+
 
 net_1 = AlphaZeroNet()
 net_1.load_state_dict(torch.load('Models/zerodeeptempdeep.pt', map_location=torch.device('cpu')))
@@ -162,7 +164,7 @@ game_params = {
     'primary_network_iterations': 500,
 
     # Player 2
-    'secondary_carlo_iterations': 300,
+    'secondary_carlo_iterations': 1000,
     'secondary_C': 2 ** .5,
 
     'secondary_network': net_2,
@@ -177,21 +179,25 @@ Human Player: player
 Random Play: random
 '''
 if __name__ == '__main__':
-    win = 0
-    for _ in range(1): # Runs Game loop x times
+    black_wins = 0
+    white_wins = 0
+    for _ in range(20): # Runs Game loop x times
         white_board, black_board, full_game_code = game('neural', 'carlo', game_params)
         winner = Othello.determine_winner(white_board, black_board)
         tiles = abs(int.bit_count(white_board) - int.bit_count(black_board))
 
         Othello.disp_game(white_board, black_board, True)
         # print(full_game_code)
-        win += winner
         match winner:
             case 1:
                 print(f'White has won by {tiles} Tiles!')
+                white_wins += 1
             case -1:
                 print(f'Black has won by {tiles} Tiles!')
+                black_wins += 1
             case 0:
                 print(f"It's a Draw!")
 
-    print(f'Overall Games: {win}')
+    print(f'Overall Games:')
+    print(f'Black: {black_wins}')
+    print(f'White: {white_wins}')
