@@ -130,6 +130,7 @@ def game(P1, P2, game_param):
         if move == -1:
             if last_turn_pass:
                 # Game is Complete!
+                display.close()
                 return white.board, black.board, game_code
             else:
                 # Pass
@@ -161,10 +162,10 @@ game_params = {
     'primary_C': 2**.5,
 
     'primary_network': net_1,
-    'primary_network_iterations': 500,
+    'primary_network_iterations': 100,
 
     # Player 2
-    'secondary_carlo_iterations': 1000,
+    'secondary_carlo_iterations': 100,
     'secondary_C': 2 ** .5,
 
     'secondary_network': net_2,
