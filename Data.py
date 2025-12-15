@@ -1,5 +1,5 @@
 import json
-
+import numpy as np
 import Othello
 import torch
 import pandas as pd
@@ -98,7 +98,7 @@ class OthelloGames(Dataset):
 
 
 
-def build_buffer_from_csv(filepath="Data/othello_dataset.csv", savepath="Data/expert_start.json"):
+def build_buffer_from_csv(filepath="Data/othello_dataset.csv", savepath="Data/expert_start.npz"):
     """
     Translate a csv file (structured like othello_dataset.csv) into a data format fit for the
     AlphaZeroNetwork to train off of. (Single Entry -> Single Move)
@@ -107,7 +107,11 @@ def build_buffer_from_csv(filepath="Data/othello_dataset.csv", savepath="Data/ex
     """
 
     csv = pd.read_csv(filepath)
-    data = []
+    data_white = []
+    data_black = []
+    data_turn = []
+    data_policy = []
+    data_value = []
 
     p_bar = tqdm(range(csv.shape[0]), desc="Compiling Games")
     for i in p_bar:
@@ -138,18 +142,24 @@ def build_buffer_from_csv(filepath="Data/othello_dataset.csv", savepath="Data/ex
 
             possible_moves = Othello.get_valid_move_list(player, opponent)
 
-            policy_dict = {}
+            policy_dist = np.zeros(65)
 
             # Create policy data
             pass_ = False
             if moves[move_dex] not in possible_moves:
-                policy_dict[-1] = 1.0
+                policy_dist[64] = 1.0
                 pass_ = True
             else:
-                policy_dict[moves[move_dex]] = 1.0
+                policy_dist[moves[move_dex]] = 1.0
 
             # Record the data given the current (upcoming) move.
-            game_dat.append([white, black, turn_count, policy_dict, int(relative_value)])
+            # game_dat.append([white, black, turn_count, policy_dist, int(relative_value)])
+
+            data_white.append(white)
+            data_black.append(black)
+            data_turn.append(turn_count)
+            data_policy.append(policy_dist)
+            data_value.append(int(relative_value))
 
             # Now, move on to the next board state
             if not pass_:
@@ -164,17 +174,27 @@ def build_buffer_from_csv(filepath="Data/othello_dataset.csv", savepath="Data/ex
             turn_count += 1
 
         # Append game data
-        data = data + game_dat
+        # data_white = data_white + game_dat[:][0]
 
     # Save data
-    with open(savepath, 'w', encoding='utf-8') as file:
-        json.dump(data, file)
+    # with open(savepath, 'w', encoding='utf-8') as file:
+    #     json.dump(data, file)
 
+    data_white = np.array(data_white, dtype=np.uint64)
+    data_black = np.array(data_black, dtype=np.uint64)
+    data_turn = np.array(data_turn, dtype=np.uint16)
+    data_policy = np.array(data_policy, dtype=np.float32)
+    data_value = np.array(data_value, dtype=np.float32)
+
+    np.savez(savepath, white=data_white, black=data_black, turn=data_turn, policy=data_policy, value=data_value)
 
 
 
 if __name__ == "__main__":
-    build_buffer_from_csv()
+    # build_buffer_from_csv()
+
+    data = np.load("Data/expert_start.npz")['policy']
+    print('hi')
     # dat = OthelloGames(path="cleaned_games.csv")
     # dat = OthelloGames(run_full_game=True, train=False)
     #
