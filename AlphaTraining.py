@@ -8,7 +8,7 @@ import gc, collections
 
 def train(network : AlphaZeroNet, play_dat : PlayDataset, batch_size, epochs, epochs_per_play=3, lr=1e-3, mcts_steps_per_turn=100,
           games_per_epoch=100, net_save_path="Models/zero.pt", dat_save_path="Data/zero_games.json",
-          pre_train_policy_only = False, start_epoch = 0):
+          pre_train_policy_only = False, start_epoch = 0, mcts_batch_size=8):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     net = network.to(device)
@@ -28,11 +28,12 @@ def train(network : AlphaZeroNet, play_dat : PlayDataset, batch_size, epochs, ep
     value_loss_fn = nn.MSELoss()
 
     dat = play_dat
+    print(len(dat))
 
     for epoch in range(start_epoch, epochs):
         # Update the dataset by playing games and resave
         if not pre_train_policy_only and epoch % epochs_per_play == 0:
-            dat.play_games(net.eval().cpu(), games_per_epoch, mcts_steps_per_turn)
+            dat.play_games(net.eval(), games_per_epoch, mcts_steps_per_turn, mcts_batch_size=mcts_batch_size)
             dat.save_as(dat_save_path)
 
         # Train based off of the current dataset.
@@ -80,7 +81,7 @@ def train(network : AlphaZeroNet, play_dat : PlayDataset, batch_size, epochs, ep
             if (epoch + 1) % (epochs_per_play*5) == 0:
                 try:
                     torch.save(net.state_dict(), net_save_path[:-3] + f'vers{(epoch+1) // (epochs_per_play*5)}' + '.pt')
-                    dat.save_as(dat_save_path[:-5] + f'vers{(epoch+1) // (epochs_per_play*5)}' + '.json')
+                    dat.save_as(dat_save_path[:-4] + f'vers{(epoch+1) // (epochs_per_play*5)}' + '.npz')
                 except:
                     pass
 
@@ -102,9 +103,15 @@ def train(network : AlphaZeroNet, play_dat : PlayDataset, batch_size, epochs, ep
 
 if __name__ == '__main__':
     net = AlphaZeroNet()
-    net.load_state_dict(torch.load('Models/zero.pt'))
-    # dat = PlayDataset('Data/expert_start.json', max_buffer_size=150000, pre_load_cap=-1)
-    # net = train(net, dat, batch_size=512, epochs=3, epochs_per_play=5, lr=3e-4, games_per_epoch=100, net_save_path="Models/pre_trained.pt", pre_train_policy_only=True)
+    net.load_state_dict(torch.load('Models/zerodeeptempdeep.pt'))
+    # dat = PlayDataset('Data/expert_start.npz', max_buffer_size=150000, pre_load_cap=-1)
+    # net = train(net, dat, batch_size=512, epochs=3, epochs_per_play=5, lr=3e-4, games_per_epoch=100, net_save_path="Models/pre_trained_npz.pt", pre_train_policy_only=True,
+    #             mcts_steps_per_turn=300)
 
-    dat = PlayDataset('Data/zero_games.json', max_buffer_size=150000, pre_load_cap=-1)
-    train(net, dat, batch_size=128, epochs=100, epochs_per_play=3, lr=3e-4, games_per_epoch=100, start_epoch=76)
+    # dat = PlayDataset('Data/zerodeep_games.npz', max_buffer_size=150000, pre_load_cap=-1)
+    # train(net, dat, batch_size=128, epochs=100, epochs_per_play=3, lr=3e-4, games_per_epoch=100, start_epoch=30, mcts_steps_per_turn=300,
+    #       net_save_path="Models/zerodeeptemp.pt", dat_save_path="Data/zerodeeptemp_games.npz")
+
+    dat = PlayDataset('Data/zerodeeptempdeep_games.npz', max_buffer_size=150000, pre_load_cap=-1)
+    train(net, dat, batch_size=128, epochs=100, epochs_per_play=3, lr=3e-4, games_per_epoch=100, start_epoch=0, mcts_steps_per_turn=500,
+          net_save_path="Models/batched.pt", dat_save_path="Data/batched.npz", mcts_batch_size=16)
