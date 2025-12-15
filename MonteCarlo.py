@@ -27,7 +27,7 @@ def create_root():
     root.visits = 1
     return root
 
-def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
+def random_game(white = 68853694464, black = 34628173824, turn_count = 0):
     # Determining who black and white is and assigning to current player/opponent
     if turn_count % 2 == 0: player, opponent = black, white
     else: player, opponent = white, black
@@ -60,7 +60,7 @@ def random_game(white = 34628173824, black = 68853694464, turn_count = 0):
         player, opponent = opponent, player
         turn_count += 1
 
-# Node __init__(self, parent=None, white=34628173824, black=68853694464, turn_count=0)
+# Node __init__(self, parent=None, white=68853694464, black=34628173824, turn_count=0)
 class MonteCarlo:
     def __init__(self, root):
         self.root = root
@@ -76,8 +76,10 @@ class MonteCarlo:
 
     # Expansion Step
     def expansion(self, parent):
-        child = parent.make_child()
-        return child
+        if parent.terminal:
+            return parent
+        else:
+            return parent.make_child()
 
     # Simulation Step
     def simulation(self, node):
@@ -146,3 +148,30 @@ def monte_carlo_tree_search(root = None, iterations = 100, C = 2):
     #DEBUG BELOW: Display entire Tree
     # tree.display(tree.root)
     return tree.root.compute_best_score()
+
+
+if __name__ == '__main__':
+    # Test Code running through 2 MCTS moves
+    white, black = 301478567933321007, 17352631971359023296
+    root = b.Node(None, white, black, -1, 60)
+    node, move = monte_carlo_tree_search(root)
+    black, white = o.update_board(move, black, white)
+    o.disp_game(white, black, False)
+
+    valid_moves = o.get_valid_move_list(white, black)
+    move = random.choice(valid_moves)
+    white, black = o.update_board(move, white, black)
+    o.disp_game(white, black, True)
+
+    new_root = None
+    if move in node.available_moves:
+        new_root = node.make_child(move)
+    else:
+        for child in node.children:
+            if child.move == move:
+                new_root = child
+                break
+
+    node, move = monte_carlo_tree_search(new_root)
+    black, white = o.update_board(move, black, white)
+    o.disp_game(white, black, False)

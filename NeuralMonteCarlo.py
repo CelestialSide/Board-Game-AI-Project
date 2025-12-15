@@ -42,7 +42,7 @@ class NeuralMonteCarlo:
 
             current_node = self.root
 
-            # Traverse the tree an record a new node.
+            # Traverse the tree a record a new node.
             while True:
                 # If the game is over in the current state, don't make more children. Get value from direct
                 # board result
