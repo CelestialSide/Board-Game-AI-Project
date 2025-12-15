@@ -89,7 +89,7 @@ class Player:
                 else: mcts = NeuralMonteCarlo(self.network, self.board, player_2.board, turn)
 
                 mcts.run_iterations(self.network_iterations)
-                move = mcts.get_move_to_play()
+                move = mcts.get_move_to_play(temperature=0)
 
                 self.root = update_node(self.root, move)
             case 'random':
@@ -148,10 +148,10 @@ def game(P1, P2, game_param):
         turn += 1
 
 net_1 = AlphaZeroNet()
-net_1.load_state_dict(torch.load('Models/zero.pt'))
+net_1.load_state_dict(torch.load('Models/zerodeeptempdeep.pt', map_location=torch.device('cpu')))
 
 net_2 = AlphaZeroNet()
-net_2.load_state_dict(torch.load('Models/zero.pt'))
+# net_2.load_state_dict(torch.load('Models/zero.pt'))
 
 game_params = {
     # Player 1
@@ -159,10 +159,10 @@ game_params = {
     'primary_C': 2**.5,
 
     'primary_network': net_1,
-    'primary_network_iterations': 100,
+    'primary_network_iterations': 500,
 
     # Player 2
-    'secondary_carlo_iterations': 50,
+    'secondary_carlo_iterations': 300,
     'secondary_C': 2 ** .5,
 
     'secondary_network': net_2,
