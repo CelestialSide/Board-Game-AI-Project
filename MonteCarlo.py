@@ -3,6 +3,7 @@ import Othello as o
 import Board as b
 from tqdm import tqdm
 
+# Displays relevant information of Node
 def display_node(node, indent = 0):
     display_indent = ('|    ' * indent) if indent > 0 else ''
 
@@ -64,7 +65,7 @@ class MonteCarlo:
     def __init__(self, root):
         self.root = root
 
-
+    # Selection Step
     def selection(self, node, C):
         while node.is_explored():
             utc = [(child, child.compute_UCT(C)) for child in node.children]
@@ -73,17 +74,17 @@ class MonteCarlo:
             node = selected_node
         return node
 
-
+    # Expansion Step
     def expansion(self, parent):
         child = parent.make_child()
         return child
 
-
+    # Simulation Step
     def simulation(self, node):
         score = random_game(node.white, node.black, node.turn_count)
         return score
 
-
+    # Backpropagation Step
     def backpropagation(self, node, score):
         # While not the root of the tree
         while node.parent is not None:
@@ -96,12 +97,26 @@ class MonteCarlo:
 
 
     def display(self, node, indent = 0):
+        """
+        DEBUG TOOL: Displays tree from Node in entirety
+        :param node: Root of the tree explored for printing
+        :param indent: For recursive display, for best viewing keep at zero when calling
+        """
         display_node(node, indent)
 
         for child in node.children:
             self.display(child, indent + 1)
 
 def monte_carlo_tree_search(root = None, iterations = 100, C = 2):
+    """
+    Runs a step of the Monte Carlo Tree Search Algorithm to find next move
+    :param root: Starting position
+    :param iterations: number of times
+    :param C: Exploration Rate
+    :return: Best move found
+    """
+
+    # Creates new root or initializes tree at root
     if root is None:
         tree = MonteCarlo(create_root())
     else:
@@ -116,10 +131,13 @@ def monte_carlo_tree_search(root = None, iterations = 100, C = 2):
         # Creates and returns Child node of Root
         child = tree.expansion(node)
 
-        #
+        # Does a random game, returns who won
         score = tree.simulation(child)
+
+        # Updates tree with who won
         tree.backpropagation(child, score)
 
+        # Shows during training current best move
         if (iteration + 1) % 100 == 0:
             best_move = tree.root.compute_best_score()[1]
             move = f'{chr(best_move % 8 + 65)}{best_move // 8 + 1}' if best_move != -1 else 'pass'
@@ -128,29 +146,3 @@ def monte_carlo_tree_search(root = None, iterations = 100, C = 2):
     #DEBUG BELOW: Display entire Tree
     # tree.display(tree.root)
     return tree.root.compute_best_score()
-
-
-if __name__ == '__main__':
-    # Test Code running through 2 MCTS moves
-    white, black = 34628173824, 68853694464
-    node, move = monte_carlo_tree_search()
-    black, white = o.update_board(move, black, white)
-    o.disp_game(white, black, False)
-
-    valid_moves = o.get_valid_move_list(white, black)
-    move = random.choice(valid_moves)
-    white, black = o.update_board(move, white, black)
-    o.disp_game(white, black, True)
-
-    new_root = None
-    if move in node.available_moves:
-        new_root = node.make_child(move)
-    else:
-        for child in node.children:
-            if child.move == move:
-                new_root = child
-                break
-
-    node, move = monte_carlo_tree_search(new_root)
-    black, white = o.update_board(move, black, white)
-    o.disp_game(white, black, False)
