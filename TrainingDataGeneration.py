@@ -203,7 +203,8 @@ class PlayDataset(Dataset):
 
         if cap != -1 and len(self.buffer[0]) > cap:
             for i in range(len(self.buffer)):
-                self.buffer[i] = self.buffer[i][:cap]
+                dif = len(self.buffer[i]) - cap
+                self.buffer[i] = self.buffer[i][dif:]
 
 
 
