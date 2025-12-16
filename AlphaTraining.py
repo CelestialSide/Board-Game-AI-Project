@@ -112,6 +112,6 @@ if __name__ == '__main__':
     # train(net, dat, batch_size=128, epochs=100, epochs_per_play=3, lr=3e-4, games_per_epoch=100, start_epoch=30, mcts_steps_per_turn=300,
     #       net_save_path="Models/zerodeeptemp.pt", dat_save_path="Data/zerodeeptemp_games.npz")
 
-    dat = PlayDataset('Data/batched.npz', max_buffer_size=150000, pre_load_cap=-1)
+    dat = PlayDataset('Data/batched.npz', max_buffer_size=100000, pre_load_cap=-1)
     train(net, dat, batch_size=128, epochs=100, epochs_per_play=3, lr=3e-4, games_per_epoch=100, start_epoch=57, mcts_steps_per_turn=500,
           net_save_path="Models/batched.pt", dat_save_path="Data/batched.npz", mcts_batch_size=16)
