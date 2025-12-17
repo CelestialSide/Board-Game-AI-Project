@@ -18,7 +18,7 @@ class Display:
 
     def setup_board(self, boards):
         self.win.setBackground(color="green")
-
+        print(self.GRID_COUNT)
         horizontal_grid = [Rectangle
                            (Point(0 + self.LABEL_OFFSET, self.bar_spacing * i + self.BAR_WIDTH * i + self.LABEL_OFFSET),
                             Point(self.WIDTH + self.LABEL_OFFSET, self.bar_spacing * i + self.BAR_WIDTH * i + self.BAR_WIDTH + self.LABEL_OFFSET))
@@ -41,13 +41,14 @@ class Display:
             h_current_rec.draw(self.win)
 
             upper_case = string.ascii_uppercase
+            letter_lim = len(string.ascii_uppercase)
             char_offset = (self.bar_spacing + self.BAR_WIDTH) / 2
             letter_x = self.LABEL_OFFSET + char_offset * 2 * i + char_offset
             letter_y = self.LABEL_OFFSET / 2
             num_x = self.LABEL_OFFSET / 2
             num_y = self.LABEL_OFFSET + char_offset * 2 * i + char_offset
 
-            current_char = Text(Point(letter_x, letter_y), upper_case[i])
+            current_char = Text(Point(letter_x, letter_y), upper_case[i % letter_lim])
             current_num = Text(Point(num_x, num_y), str(i + 1))
 
             current_char.setTextColor("white")
@@ -134,3 +135,37 @@ class Display:
 
     def close(self):
         self.win.close()
+
+    def pause(self):
+        self.win.getMouse()
+
+    def img_board_setup(self, img):
+        shape = img.shape
+
+        self.GRID_COUNT = shape[0]
+        self.BAR_WIDTH = 1
+        self.bar_spacing = (self.WIDTH - (self.GRID_COUNT + 1) * self.BAR_WIDTH) / self.GRID_COUNT
+
+        self.setup_board([0,0,0])
+
+        if self.player_pieces:
+            for i in range(len(self.player_pieces)):
+                self.player_pieces.pop().undraw()
+
+        circle_spacing = self.bar_spacing / 2
+        circle_radius = self.bar_spacing / 2 - 4
+
+        for imgx in range(self.GRID_COUNT):
+            for imgy in range(self.GRID_COUNT):
+                x: int = self.LABEL_OFFSET
+                y: int = self.LABEL_OFFSET
+                x += imgy * self.bar_spacing + (imgy + 1) * self.BAR_WIDTH + circle_spacing
+                y += imgx * self.bar_spacing + (imgx+ 1) * self.BAR_WIDTH + circle_spacing
+                center = Point(x, y)
+                piece = Circle(center, circle_radius)
+                if img[imgx][imgy]:
+                    piece.setFill(color="white")
+                else:
+                    piece.setFill(color="black")
+                self.player_pieces.append(piece)
+                piece.draw(self.win)
