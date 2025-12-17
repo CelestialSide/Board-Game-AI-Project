@@ -183,7 +183,7 @@ if __name__ == '__main__':
     black_wins = 0
     white_wins = 0
     for _ in range(20): # Runs Game loop x times
-        white_board, black_board, full_game_code = game('neural', 'carlo', game_params)
+        white_board, black_board, full_game_code = game('player', 'carlo', game_params)
         winner = Othello.determine_winner(white_board, black_board)
         tiles = abs(int.bit_count(white_board) - int.bit_count(black_board))
 

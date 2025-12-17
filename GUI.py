@@ -1,4 +1,5 @@
 import string
+from string import ascii_uppercase
 
 from graphics import * # Package is called 'graphics.py'
 
@@ -13,6 +14,7 @@ class Display:
         self.GRID_COUNT = 8 # The number of cells in a row and in a column.
         self.win = GraphWin("Othello", width + self.LABEL_OFFSET, height + self.LABEL_OFFSET)
         self.player_pieces = []
+        self.labels = []
         self.BAR_WIDTH = 10
         self.bar_spacing = (self.WIDTH - (self.GRID_COUNT + 1) * self.BAR_WIDTH) / self.GRID_COUNT
 
@@ -76,6 +78,11 @@ class Display:
         if self.player_pieces:
             for i in range(len(self.player_pieces)):
                 self.player_pieces.pop().undraw()
+        if self.labels:
+            for i in range(len(self.labels)):
+                label = self.labels.pop()
+                for j in range(2):
+                    label.pop().undraw()
 
         circle_spacing = self.bar_spacing / 2
         circle_radius = self.bar_spacing / 2 - 5
@@ -106,9 +113,20 @@ class Display:
                 y += (i // self.GRID_COUNT) * self.bar_spacing + (i // self.GRID_COUNT + 1) * self.BAR_WIDTH + circle_spacing
                 center = Point(x, y)
                 piece = Circle(center, circle_radius)
-                piece.setFill(color="green")
+                piece.setFill(color="red")
+
+                current_char = Text(Point(x-5, y), ascii_uppercase[i % self.GRID_COUNT])
+                current_num = Text(Point(x+5, y), str(i // self.GRID_COUNT + 1))
+
+                current_char.setTextColor("white")
+                current_num.setTextColor("white")
+
                 self.player_pieces.append(piece)
                 piece.draw(self.win)
+
+                self.labels.append([current_char,current_num])
+                current_char.draw(self.win)
+                current_num.draw(self.win)
 
     def is_valid(self, valid_moves, chosen_spot):
         for v in valid_moves:
